@@ -1,3 +1,50 @@
+/* Persistent LUXENPRO navigation shared by the Deriv workspace modules */
+.luxen-global-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    border-bottom: 1px solid #f5d8df;
+    background: #fff8fa;
+    scrollbar-width: thin;
+}
+.luxen-global-nav__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 13px;
+    border: 0;
+    border-radius: 22px;
+    color: #40516c;
+    background: #fff;
+    box-shadow: 0 2px 9px #4a25300e;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.luxen-global-nav__item.is-active {
+    color: #fff;
+    background: linear-gradient(105deg, #f52d65, #ff6745);
+    box-shadow: 0 4px 13px #f52d6544;
+}
+.luxen-global-nav__number {
+    color: #ed4165;
+    font-size: 9px;
+    font-weight: 900;
+}
+.luxen-global-nav__item.is-active .luxen-global-nav__number { color: #fff; }
+/* The unified LUXEN navigation replaces the old duplicate Deriv tab strip. */
+.dc-tabs__list--luxen-shell { display: none !important; }
+.luxen-deriv-dashboard { margin-top: 24px; }
+@media (max-width: 600px) {
+    .luxen-global-nav { padding: 8px; gap: 6px; }
+    .luxen-global-nav__item { min-height: 38px; padding: 0 11px; font-size: 12px; }
+}
+
 /* LUXEN marketplace theme — scoped to the dashboard module */
 .luxen-dashboard {
     --luxen-ink: #253b5d;
