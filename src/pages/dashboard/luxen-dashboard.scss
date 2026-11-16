@@ -37,8 +37,27 @@
     font-weight: 900;
 }
 .luxen-global-nav__item.is-active .luxen-global-nav__number { color: #fff; }
-/* The unified LUXEN navigation replaces the old duplicate Deriv tab strip. */
-.dc-tabs--main__tabs.luxen-shell .dc-tabs__list { display: none !important; }
+/* Keep the original Deriv workspace tabs visible beneath the LUXENPRO module navigation. */
+.dc-tabs--main__tabs .dc-tabs__list {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    border-bottom: 1px solid #f5d8df;
+    background: #fff;
+}
+.dc-tabs--main__tabs .dc-tabs__item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+.dc-tabs--main__tabs .dc-tabs__content {
+    min-width: 0;
+}
+
 .luxen-deriv-dashboard { margin-top: 24px; }
 @media (max-width: 600px) {
     .luxen-global-nav { padding: 8px; gap: 6px; }
