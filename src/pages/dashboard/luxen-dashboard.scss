@@ -1,0 +1,106 @@
+/* LUXEN marketplace theme — scoped to the dashboard module */
+.luxen-dashboard {
+    --luxen-ink: #253b5d;
+    --luxen-muted: #657895;
+    --luxen-pink: #fff2f5;
+    --luxen-pink-2: #ffe0e8;
+    --luxen-red: #f52f62;
+    --luxen-orange: #ff6845;
+    --luxen-blue: #2385ff;
+    min-height: 100%;
+    color: var(--luxen-ink);
+    background: linear-gradient(135deg, #fff9fa 0%, #ffe9ef 48%, #fff5f6 100%);
+    font-family: Inter, Arial, sans-serif;
+}
+.luxen-subnav { display:flex; align-items:center; gap:9px; padding:10px 12px; overflow-x:auto; border-top:1px solid #f9dce3; border-bottom:1px solid #f5d8df; background:rgba(255,248,250,.94); scrollbar-width:thin; }
+.luxen-filter,.luxen-nav-pill { flex:0 0 auto; border:0; cursor:pointer; color:#40516c; background:#fff; box-shadow:0 2px 9px #4a25300e; }
+.luxen-filter { width:42px; height:40px; border-radius:12px; color:var(--luxen-red); font-size:21px; }
+.luxen-nav-pill { display:flex; align-items:center; gap:9px; min-height:40px; padding:0 18px; border-radius:24px; font-size:14px; font-weight:700; white-space:nowrap; }
+.luxen-nav-pill span { font-size:17px; }
+.luxen-nav-pill.is-active { color:#fff; background:linear-gradient(105deg,#f52d65,#ff6745); box-shadow:0 4px 13px #f52d6544; }
+.luxen-marketplace,.luxen-module-page { padding:18px 20px 28px; }
+.luxen-section-heading { display:flex; justify-content:space-between; align-items:end; gap:14px; margin:2px 0 16px; }
+.luxen-eyebrow { color:#f04a68; font-size:10px; font-weight:800; letter-spacing:1.4px; }
+.luxen-section-heading h1,.luxen-module-page h1 { margin:4px 0; color:#253b5d; font-size:25px; font-weight:800; }
+.luxen-section-heading p,.luxen-module-lead { margin:5px 0 0; color:#6d7e98; font-size:13px; }
+.luxen-open-count { padding:7px 11px; border:1px solid #ffd2dc; border-radius:20px; color:#ed4165; background:#fff; font-size:10px; font-weight:800; white-space:nowrap; }
+.luxen-bot-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; }
+.luxen-bot-card { display:flex; flex-direction:column; overflow:hidden; min-width:0; border:1px solid #f2cbd5; border-radius:21px; background:rgba(255,255,255,.78); box-shadow:0 8px 20px #7b334014; }
+.luxen-card-visual { position:relative; height:202px; overflow:hidden; background:linear-gradient(135deg,#d9f0ff,#f5faff 48%,#c8ddeb); }
+.luxen-market-tag { position:absolute; top:10px; left:10px; z-index:3; padding:5px 10px; border-radius:14px; color:#fff; font-size:9px; font-weight:800; }
+.luxen-market-tag--blue { background:linear-gradient(90deg,#246cff,#51a8ff); }
+.luxen-market-tag--red { background:linear-gradient(90deg,#f22e63,#ff5c78); }
+.luxen-market-tag--cyan { background:linear-gradient(90deg,#0a9bd2,#37c5e7); }
+.luxen-card-number { position:absolute; top:10px; right:10px; z-index:3; display:grid; place-items:center; width:34px; height:34px; border:1px solid #ffffffa6; border-radius:50%; color:#fff; background:#253a59e8; font-size:11px; font-weight:800; }
+.luxen-bot-art { position:absolute; inset:0; overflow:hidden; }
+.luxen-art-grid { position:absolute; inset:0; opacity:.3; background-image:linear-gradient(#66b9e7 1px,transparent 1px),linear-gradient(90deg,#66b9e7 1px,transparent 1px); background-size:25px 25px; mask-image:linear-gradient(transparent,#000); }
+.luxen-art-orbit { position:absolute; width:210px; height:90px; left:50%; top:52%; border:1px solid #47b8ed9c; border-radius:50%; transform:translate(-50%,-50%) rotate(-22deg); box-shadow:0 0 20px #51bdf45c; }
+.luxen-art-orbit--two { width:165px; height:120px; transform:translate(-50%,-50%) rotate(55deg); }
+.luxen-robot { position:absolute; left:50%; bottom:-25px; width:155px; height:195px; transform:translateX(-50%); filter:drop-shadow(0 7px 7px #345b7755); }
+.luxen-robot__head { position:absolute; z-index:2; left:42px; top:20px; width:72px; height:82px; border:2px solid #a9c7d8; border-radius:44% 44% 38% 38%; background:linear-gradient(110deg,#fff 0%,#d9e7ee 42%,#829eaf 100%); box-shadow:inset -8px -4px 10px #58758955,inset 5px 4px 8px #fff; }
+.luxen-robot__head:after { content:''; position:absolute; left:19px; top:45px; width:33px; height:13px; border-bottom:2px solid #60798a; border-radius:50%; }
+.luxen-robot__head i { position:absolute; top:34px; left:13px; width:10px; height:5px; border-radius:50%; background:#f23f50; box-shadow:0 0 7px #ff344d; }
+.luxen-robot__head i+i { left:48px; }
+.luxen-robot__antenna { position:absolute; left:76px; top:5px; width:3px; height:18px; background:#a9c3d3; }
+.luxen-robot__antenna:after { content:''; position:absolute; left:-3px; top:-5px; width:9px; height:9px; border-radius:50%; background:#ff5c73; box-shadow:0 0 9px #ff5c73; }
+.luxen-robot__neck { position:absolute; z-index:1; left:65px; top:92px; width:28px; height:20px; background:linear-gradient(90deg,#819aaa,#e9f2f6,#7894a5); }
+.luxen-robot__body { position:absolute; left:18px; top:106px; width:120px; height:105px; border:2px solid #9bb8c9; border-radius:45% 45% 10% 10%; background:linear-gradient(110deg,#f9fdff,#c6d8e2 52%,#819aaa); box-shadow:inset 0 0 14px #fff; }
+.luxen-robot__body span { position:absolute; top:32px; left:48px; color:#ffbd4a; font-size:25px; text-shadow:0 0 10px #ffb63c; }
+.luxen-robot__arm { position:absolute; z-index:2; top:125px; width:27px; height:72px; border:2px solid #9cb7c8; border-radius:18px; background:linear-gradient(90deg,#7894a5,#edf6fa,#91a9b8); }
+.luxen-robot__arm--left { left:2px; transform:rotate(22deg); }
+.luxen-robot__arm--right { right:2px; transform:rotate(-22deg); }
+.luxen-bot-art--red .luxen-art-orbit { border-color:#ff718c; box-shadow:0 0 22px #ff6b8b77; }
+.luxen-bot-art--cyan .luxen-art-orbit { border-color:#21d6ec; }
+.luxen-art-data { position:absolute; z-index:2; top:44%; color:#1685c6; font-size:11px; font-weight:900; text-shadow:0 0 8px #fff; }
+.luxen-art-data--left { left:8px; }
+.luxen-art-data--right { right:8px; }
+.luxen-art-caption { position:absolute; z-index:3; right:8px; bottom:25px; color:#fff; font-size:8px; font-weight:900; letter-spacing:1px; text-shadow:0 1px 4px #164b6d; }
+.luxen-access { position:absolute; z-index:4; right:0; bottom:0; left:0; padding:5px 9px; color:#0879c8; background:#fff; font-size:9px; font-weight:900; letter-spacing:.6px; }
+.luxen-card-content { display:flex; flex:1; flex-direction:column; min-height:174px; padding:12px 13px 13px; }
+.luxen-card-content h2 { display:flex; align-items:center; gap:7px; margin:0 0 8px; color:#9b1938; font-size:13px; font-weight:800; }
+.luxen-card-content h2 span { padding:3px 5px; border:1px solid #bdd6ff; border-radius:5px; color:#176bdb; background:#e9f2ff; font-size:10px; }
+.luxen-card-content p { flex:1; margin:0 0 12px; color:#647792; font-size:11px; line-height:1.5; }
+.luxen-load-button,.luxen-primary-action { display:flex; align-items:center; justify-content:center; gap:9px; min-height:37px; border:0; border-radius:24px; color:#fff; background:linear-gradient(100deg,#f52f66,#ff6944); box-shadow:0 3px 8px #ed416044; font-size:12px; font-weight:800; cursor:pointer; }
+.luxen-load-button:hover,.luxen-primary-action:hover { filter:brightness(1.04); transform:translateY(-1px); }
+.luxen-module-page { min-height:65vh; }
+.luxen-stat-grid,.luxen-analysis-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; margin:22px 0; }
+.luxen-stat-card { padding:19px; border:1px solid #f2cbd5; border-radius:16px; background:#ffffffc9; box-shadow:0 6px 18px #7b33400c; }
+.luxen-stat-card small,.luxen-calc-result small { display:block; color:#f04a68; font-size:10px; font-weight:800; letter-spacing:1px; }
+.luxen-stat-card strong { display:block; margin:10px 0 5px; color:#263e60; font-size:21px; }
+.luxen-stat-card span { color:#71819a; font-size:12px; }
+.luxen-primary-action { padding:0 24px; }
+.luxen-empty-state { display:grid; place-items:center; min-height:260px; margin-top:20px; padding:25px; border:1px dashed #edb9c7; border-radius:20px; background:#ffffff9c; text-align:center; }
+.luxen-empty-state>span { color:#f34a6d; font-size:38px; }
+.luxen-empty-state h2 { margin:9px 0 4px; font-size:18px; }
+.luxen-empty-state p,.luxen-muted { color:#75849b; font-size:12px; }
+.luxen-digit-panel,.luxen-calculator { margin-top:22px; padding:20px; border:1px solid #f0c9d4; border-radius:18px; background:#ffffffc9; }
+.luxen-panel-title { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.luxen-panel-title h2 { margin:0; font-size:16px; }
+.luxen-live-indicator { color:#a47a42; font-size:11px; }
+.luxen-digit-row { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); gap:8px; margin:20px 0; }
+.luxen-digit-cell { display:grid; gap:9px; place-items:center; padding:14px 4px; border:1px solid #dce7f4; border-radius:12px; background:#f7fbff; }
+.luxen-digit-cell b { color:#286da9; font-size:19px; }
+.luxen-digit-cell span { color:#8494aa; font-size:12px; }
+.luxen-calculator { display:grid; grid-template-columns:1.3fr .7fr; gap:22px; }
+.luxen-calc-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+.luxen-calc-fields label { display:grid; gap:7px; color:#536782; font-size:12px; font-weight:700; }
+.luxen-calc-fields input { width:100%; min-height:42px; padding:0 12px; border:1px solid #e7cbd3; border-radius:10px; outline-color:#f34a6d; background:#fff; color:#253b5d; }
+.luxen-calc-result { display:flex; flex-direction:column; justify-content:center; padding:18px; border-radius:14px; background:#fff0f3; }
+.luxen-calc-result strong { margin:9px 0 16px; color:#ed3f65; font-size:32px; }
+.luxen-calc-result span { color:#6b7c95; font-size:12px; }
+.luxen-calc-result b { margin:4px 0 12px; color:#263e60; font-size:23px; }
+.luxen-calc-result p { color:#7b879a; font-size:10px; line-height:1.5; }
+@media (max-width:1200px) { .luxen-bot-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:900px) { .luxen-bot-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .luxen-card-visual { height:190px; } }
+@media (max-width:600px) {
+    .luxen-marketplace,.luxen-module-page { padding:14px 10px 24px; }
+    .luxen-bot-grid { grid-template-columns:1fr; gap:12px; }
+    .luxen-card-visual { height:215px; }
+    .luxen-section-heading { align-items:start; flex-direction:column; }
+    .luxen-section-heading h1,.luxen-module-page h1 { font-size:22px; }
+    .luxen-stat-grid,.luxen-analysis-grid { grid-template-columns:1fr; }
+    .luxen-calculator { grid-template-columns:1fr; padding:14px; }
+    .luxen-calc-fields { grid-template-columns:1fr; }
+    .luxen-digit-row { grid-template-columns:repeat(5,minmax(0,1fr)); }
+    .luxen-panel-title { align-items:flex-start; flex-direction:column; }
+}
