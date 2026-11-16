@@ -38,7 +38,7 @@
 }
 .luxen-global-nav__item.is-active .luxen-global-nav__number { color: #fff; }
 /* The unified LUXEN navigation replaces the old duplicate Deriv tab strip. */
-.dc-tabs__list--luxen-shell { display: none !important; }
+.dc-tabs--main__tabs.luxen-shell .dc-tabs__list { display: none !important; }
 .luxen-deriv-dashboard { margin-top: 24px; }
 @media (max-width: 600px) {
     .luxen-global-nav { padding: 8px; gap: 6px; }
