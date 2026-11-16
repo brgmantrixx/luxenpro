@@ -151,3 +151,22 @@
     .luxen-digit-row { grid-template-columns:repeat(5,minmax(0,1fr)); }
     .luxen-panel-title { align-items:flex-start; flex-direction:column; }
 }
+
+
+/* Keep the unified LUXENPRO module strip above the single Deriv workspace. */
+.main {
+    flex-direction: column;
+}
+
+.main > .luxen-global-nav {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+}
+
+.main > .main__container {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
