@@ -12,7 +12,7 @@ const RobotArt = ({ tone, id }: { tone: string; id: string }) => <div className=
     <span className='luxen-art-data luxen-art-data--left'>0 2 4 6 8</span><span className='luxen-art-data luxen-art-data--right'>1 3 7 9</span><span className='luxen-art-caption'>AI STRATEGY ENGINE</span>
 </div>;
 
-const Dashboard = observer(({ section = 'Dashboard', handleTabChange }: { section?: Section; handleTabChange: (tab: number) => void }) => {
+const Dashboard = observer(({ section = 'Dashboard', handleTabChange, onNavigate }: { section?: Section; handleTabChange: (tab: number) => void; onNavigate?: (module: string) => void }) => {
     const { dashboard } = useStore();
     const { setActiveTab } = dashboard;
     const [balance, setBalance] = useState('100');
@@ -21,7 +21,10 @@ const Dashboard = observer(({ section = 'Dashboard', handleTabChange }: { sectio
     const [pipValue, setPipValue] = useState('1');
     const riskAmount = useMemo(() => Math.max(0, Number(balance) * Number(risk) / 100 || 0), [balance, risk]);
     const lot = useMemo(() => Number(stopLoss) > 0 && Number(pipValue) > 0 ? riskAmount / (Number(stopLoss) * Number(pipValue)) : 0, [riskAmount, stopLoss, pipValue]);
-    const builder = () => setActiveTab(DBOT_TABS.BOT_BUILDER);
+    const builder = () => {
+        if (onNavigate) onNavigate('Bot Builder');
+        else setActiveTab(DBOT_TABS.BOT_BUILDER);
+    };
     return <div className='luxen-dashboard'>
         {section === 'Free Bots' && <section className='luxen-marketplace'>
             <div className='luxen-section-heading'><div><span className='luxen-eyebrow'>BOT MARKETPLACE</span><h1>Free Bots</h1><p>The free bot catalogue has been cleared.</p></div><span className='luxen-open-count'>0 BOTS</span></div>
