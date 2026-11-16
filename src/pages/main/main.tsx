@@ -84,6 +84,7 @@ const AppWrapper = observer(() => {
     const navigate = useNavigate();
     const [left_tab_shadow, setLeftTabShadow] = useState<boolean>(false);
     const [right_tab_shadow, setRightTabShadow] = useState<boolean>(false);
+    const [activeLuxenModule, setActiveLuxenModule] = useState('Dashboard');
 
     // Trade type modal state
     const [tradeTypeModalState, setTradeTypeModalState] = useState(getModalState());
@@ -356,6 +357,17 @@ const AppWrapper = observer(() => {
         [active_tab]
     );
 
+    const handleLuxenNavigation = (module: string) => {
+        setActiveLuxenModule(module);
+        if (module === 'Bot Builder') {
+            setActiveTab(BOT_BUILDER);
+        } else if (module === 'Charts' || module === 'Manual Trading') {
+            setActiveTab(DBOT_TABS.CHART);
+        } else {
+            setActiveTab(DASHBOARD);
+        }
+    };
+
     // [AI]
     const handleLoginGeneration = async () => {
         const oauthUrl = await generateOAuthURL();
@@ -369,6 +381,19 @@ const AppWrapper = observer(() => {
     return (
         <React.Fragment>
             <div className='main'>
+                <nav className='luxen-global-nav' aria-label='LUXENPRO trading modules'>
+                    {['Dashboard', 'Bot Builder', 'Free Bots', 'Premium Bots', 'D-Circles', 'Speed Lab', 'Pro Hedge', 'Charts', 'Manual Trading', 'Risk Calculator'].map((module, index) => (
+                        <button
+                            key={module}
+                            type='button'
+                            className={`luxen-global-nav__item ${activeLuxenModule === module ? 'is-active' : ''}`}
+                            onClick={() => handleLuxenNavigation(module)}
+                        >
+                            <span className='luxen-global-nav__number'>{String(index + 1).padStart(2, '0')}</span>
+                            {module}
+                        </button>
+                    ))}
+                </nav>
                 <div
                     className={classNames('main__container', {
                         'main__container--active': active_tour && active_tab === DASHBOARD && !isDesktop,
@@ -376,7 +401,7 @@ const AppWrapper = observer(() => {
                 >
                     <div>
                         {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}{' '}
-                        <Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top>
+                        <Tabs active_index={active_tab} className='main__tabs luxen-shell' onTabItemClick={handleTabChange} top>
                             <div
                                 label={
                                     <>
@@ -390,7 +415,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-dbot-dashboard'
                             >
-                                <Dashboard handleTabChange={handleTabChange} />
+                                <Dashboard handleTabChange={handleTabChange} section={activeLuxenModule} onNavigate={handleLuxenNavigation} />
                             </div>
                             <div
                                 label={

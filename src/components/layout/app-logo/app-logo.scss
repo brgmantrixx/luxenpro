@@ -56,7 +56,10 @@
         }
 
         .app-header__logo-text {
-            display: none;
+            display: block;
+            max-width: 130px;
+            margin-left: 0.6rem;
+            font-size: 1.4rem;
         }
     }
 }
