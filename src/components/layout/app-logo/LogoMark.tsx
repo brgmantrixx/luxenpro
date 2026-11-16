@@ -58,7 +58,7 @@ export const LogoMark = ({ height = 32 }: TLogoMarkProps) => {
                     style={{ height: `${height}px` }}
                     onError={() => setCandidateIndex((index) => index + 1)}
                 />
-            ) : (
+            ) : !showName ? (
                 <span
                     className='app-header__logo-badge'
                     style={{ height: `${height}px`, width: `${height}px` }}
@@ -66,7 +66,7 @@ export const LogoMark = ({ height = 32 }: TLogoMarkProps) => {
                 >
                     {badgeLetter}
                 </span>
-            )}
+            ) : null}
             {showName && <span className='app-header__logo-text'>{appName}</span>}
         </span>
     );
