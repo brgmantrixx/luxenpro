@@ -415,7 +415,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-dbot-dashboard'
                             >
-                                <Dashboard handleTabChange={handleTabChange} section={activeLuxenModule} />
+                                <Dashboard handleTabChange={handleTabChange} section={activeLuxenModule} onNavigate={handleLuxenNavigation} />
                             </div>
                             <div
                                 label={
