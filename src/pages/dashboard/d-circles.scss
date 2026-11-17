@@ -1,0 +1,75 @@
+.luxen-dc{--dc-bg:#090d18;--dc-panel:#111827;--dc-border:#263246;--dc-text:#e8edf6;--dc-muted:#91a0b8;min-height:100%;padding:22px;color:var(--dc-text);background:radial-gradient(ellipse at 50% 0%,#17233b 0%,#090d18 58%);font-family:Inter,Arial,sans-serif}
+.luxen-dc *{box-sizing:border-box}
+.luxen-dc__header,.luxen-dc__panel-heading,.luxen-dc__toolbar,.luxen-dc__controls,.luxen-dc__legend,.luxen-dc__history{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.luxen-dc__header h1{margin:5px 0;color:#f4f7fc;font-size:27px;font-weight:850}
+.luxen-dc__header p,.luxen-dc__panel-heading p,.luxen-dc__patterns p{margin:4px 0;color:var(--dc-muted);font-size:12px}
+.luxen-dc__eyebrow{color:#ff6688;font-size:10px;font-weight:850;letter-spacing:1.5px}
+.luxen-dc__status{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid var(--dc-border);border-radius:22px;background:#131d2c;font-size:11px;font-weight:850}
+.luxen-dc__status i{width:8px;height:8px;border-radius:50%;background:#8792a5}
+.luxen-dc__status--live i{background:#35d98a;box-shadow:0 0 12px #35d98a}
+.luxen-dc__status--paused i{background:#f59e0b}
+.luxen-dc__status--error i,.luxen-dc__status--disconnected i{background:#ef4444}
+.luxen-dc__toolbar{flex-wrap:wrap;margin:20px 0;padding:13px;border:1px solid var(--dc-border);border-radius:14px;background:#101827}
+.luxen-dc__toolbar label{display:grid;gap:6px;color:#9baac0;font-size:9px;font-weight:850;letter-spacing:1px}
+.luxen-dc__toolbar select{min-width:235px;min-height:39px;padding:0 12px;border:1px solid #34435b;border-radius:9px;color:#eef3fa;background:#172337;font-size:12px}
+.luxen-dc__controls{justify-content:flex-start;flex-wrap:wrap}
+.luxen-dc__controls button{min-height:36px;padding:0 13px;border:1px solid #34435b;border-radius:9px;color:#e8edf6;background:#1a2940;font-size:11px;font-weight:750;cursor:pointer}
+.luxen-dc__window{color:#ffd700;font-size:10px;font-weight:900;letter-spacing:.8px}
+.luxen-dc__error{margin:12px 0;padding:12px;border:1px solid #7f303d;border-radius:10px;color:#ffc5ce;background:#321923;font-size:12px}
+.luxen-dc__stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.luxen-dc__stats article{min-width:0;padding:16px;border:1px solid var(--dc-border);border-radius:13px;background:linear-gradient(145deg,#172236,#101725);box-shadow:0 8px 20px #0003}
+.luxen-dc__stats small,.luxen-dc__signal span{display:block;color:#91a0b8;font-size:9px;font-weight:850;letter-spacing:1px}
+.luxen-dc__stats strong{display:block;overflow:hidden;margin:9px 0 5px;color:#f3f6fb;font-size:20px;text-overflow:ellipsis;white-space:nowrap}
+.luxen-dc__stats span{color:#9baac0;font-size:10px}
+.luxen-dc__signal-row{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(240px,1.2fr);gap:12px;margin:14px 0}
+.luxen-dc__signal{display:grid;gap:6px;padding:17px;border:1px solid var(--dc-border);border-radius:13px;background:#131e2e}
+.luxen-dc__signal strong{font-size:23px;letter-spacing:.5px}
+.luxen-dc__signal small,.luxen-dc__signal-note{color:#a5b2c7;font-size:11px;line-height:1.55}
+.luxen-dc__signal.is-odd{border-color:#a23a4b;background:linear-gradient(120deg,#351b2b,#171c2b)}
+.luxen-dc__signal.is-odd strong{color:#ff647e;text-shadow:0 0 16px #f43f5e55}
+.luxen-dc__signal.is-even{border-color:#277a58;background:linear-gradient(120deg,#153b34,#171c2b)}
+.luxen-dc__signal.is-even strong{color:#35d98a;text-shadow:0 0 16px #35d98a55}
+.luxen-dc__signal-note{display:flex;align-items:center;padding:14px 18px;border:1px solid var(--dc-border);border-radius:13px;background:#101725}
+.luxen-dc__panel{min-width:0;margin-top:14px;padding:18px;border:1px solid var(--dc-border);border-radius:16px;background:linear-gradient(145deg,#121c2b,#0e1522);box-shadow:0 10px 24px #0003}
+.luxen-dc__panel-heading{margin-bottom:20px}
+.luxen-dc__panel-heading h2,.luxen-dc__patterns h2{margin:0;color:#edf2fa;font-size:15px;font-weight:850}
+.luxen-dc__panel-heading>span{color:#ffd700;font-size:11px;font-weight:850}
+.luxen-dc__circles{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:10px}
+.luxen-dc__circle-wrap{display:grid;place-items:center;min-width:0;padding:5px;border-radius:50%;transition:transform .2s ease}
+.luxen-dc__circle-wrap.is-latest{filter:drop-shadow(0 0 8px #ef4444)}
+.luxen-dc__circle{--ring:#64748b;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(100%,104px);aspect-ratio:1;border:1px solid #34435a;border-radius:50%;background:conic-gradient(var(--ring) var(--progress),#263246 0);isolation:isolate}
+.luxen-dc__circle:before{position:absolute;z-index:-1;inset:5px;border:1px solid #34435a;border-radius:50%;background:#111a28;content:''}
+.luxen-dc__circle b{color:#f4f7fc;font-size:25px;line-height:1.1}
+.luxen-dc__circle span{margin-top:3px;color:#c4cedd;font-size:10px;font-weight:850}
+.luxen-dc__circle small{margin-top:3px;color:#8494ac;font-size:8px}
+.luxen-dc__circle--most{--ring:#35d98a;border-color:#35d98a;box-shadow:0 0 14px #35d98a22}
+.luxen-dc__circle--second{--ring:#3498ff;border-color:#3498ff;box-shadow:0 0 14px #3498ff22}
+.luxen-dc__circle--least{--ring:#ef4444;border-color:#ef4444}
+.luxen-dc__circle--second-least{--ring:#f59e0b;border-color:#f59e0b}
+.luxen-dc__circle-wrap.is-latest .luxen-dc__circle{outline:2px solid #ffd700;outline-offset:3px;box-shadow:0 0 15px #ef4444,0 0 22px #ef444455}
+.luxen-dc__legend{justify-content:center;flex-wrap:wrap;margin-top:20px}
+.luxen-dc__legend span{display:flex;align-items:center;gap:6px;color:#9eacc1;font-size:9px}
+.luxen-dc__legend i{width:8px;height:8px;border-radius:50%}
+.luxen-dc__legend .green{background:#35d98a}.luxen-dc__legend .blue{background:#3498ff}.luxen-dc__legend .red{background:#ef4444}.luxen-dc__legend .orange{background:#f59e0b}.luxen-dc__legend .gold{background:#ffd700}
+.luxen-dc__patterns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.luxen-dc__patterns .luxen-dc__panel{min-height:135px}
+.luxen-dc__pattern{display:flex;flex-wrap:wrap;gap:5px;margin-top:13px}
+.luxen-dc__pattern b,.luxen-dc__history span{display:grid;place-items:center;width:25px;height:25px;border-radius:7px;font-size:10px;font-weight:900}
+.luxen-dc__pattern .even,.luxen-dc__history .even{color:#78baff;background:#163457}
+.luxen-dc__pattern .odd,.luxen-dc__history .odd{color:#ff7b91;background:#431f2b}
+.luxen-dc__pattern .over{color:#fbbf65;background:#49331a}
+.luxen-dc__pattern .under{color:#79dcb0;background:#153b32}
+.luxen-dc__history{justify-content:flex-start;flex-wrap:wrap;margin-top:14px;padding:13px;border:1px solid var(--dc-border);border-radius:12px;background:#101725}
+.luxen-dc__history strong{margin-right:5px;color:#8e9db4;font-size:9px;letter-spacing:1px}
+.luxen-dc__footnote{margin:13px 2px;color:#78879e;font-size:10px;line-height:1.6}
+@media(max-width:1100px){.luxen-dc__circles{grid-template-columns:repeat(5,minmax(0,1fr));row-gap:15px}.luxen-dc__circle{width:min(100%,118px)}}
+@media(max-width:700px){.luxen-dc{padding:13px}.luxen-dc__header{align-items:flex-start;flex-direction:column}.luxen-dc__header h1{font-size:23px}.luxen-dc__stats{grid-template-columns:repeat(2,minmax(0,1fr))}.luxen-dc__signal-row,.luxen-dc__patterns{grid-template-columns:1fr}.luxen-dc__toolbar{align-items:stretch;flex-direction:column}.luxen-dc__toolbar select{width:100%}.luxen-dc__window{align-self:flex-start}.luxen-dc__panel{padding:13px}.luxen-dc__circle b{font-size:23px}}
+@media(max-width:390px){.luxen-dc__stats{grid-template-columns:1fr}.luxen-dc__circle{width:100%;max-width:90px}.luxen-dc__circles{gap:5px}}
+
+.luxen-dc__floating-signal{position:fixed;z-index:1200;right:24px;bottom:24px;display:grid;gap:4px;min-width:168px;padding:13px 17px;border:1px solid #ffd700;border-radius:13px;color:#fff;background:#111827;box-shadow:0 0 0 1px #ffd70033,0 0 22px #ef444477,0 12px 30px #0008;animation:luxen-signal-pop .28s ease-out}
+.luxen-dc__floating-signal span{font-size:15px;font-weight:950;letter-spacing:1px}
+.luxen-dc__floating-signal small{color:#c0cada;font-size:10px}
+.luxen-dc__floating-signal.is-odd span{color:#ff526f;text-shadow:0 0 12px #ef4444}
+.luxen-dc__floating-signal.is-even span{color:#35d98a;text-shadow:0 0 12px #35d98a}
+@keyframes luxen-signal-pop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){.luxen-dc__floating-signal{right:12px;bottom:14px;min-width:150px;padding:10px 13px}}
