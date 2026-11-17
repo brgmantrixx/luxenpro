@@ -106,12 +106,12 @@ const DCircles = () => {
             let rawSymbols = response?.active_symbols || response?.data?.active_symbols || [];
             const mapMarkets = (items: any[]): Market[] => items
                 .map((item: any) => ({
-                    symbol: String(item.symbol || ''),
-                    display_name: item.display_name || item.symbol,
+                    symbol: String(item.symbol || item.underlying_symbol || ''),
+                    display_name: item.display_name || item.underlying_symbol_name || item.symbol || item.underlying_symbol,
                     market: item.market || item.market_display_name || '',
                     submarket: item.submarket || item.submarket_display_name || '',
                     pip_size: item.pip_size ?? item.pip,
-                    precision: api_base.pip_sizes?.[item.symbol] ?? decimalPlaces(item.pip_size ?? item.pip),
+                    precision: api_base.pip_sizes?.[item.symbol || item.underlying_symbol] ?? decimalPlaces(item.pip_size ?? item.pip),
                 }))
                 .filter((item: Market) => item.symbol && marketGroup(item));
             let available = mapMarkets(Array.isArray(rawSymbols) ? rawSymbols : []);
@@ -128,7 +128,7 @@ const DCircles = () => {
             } else {
                 setStatus('ERROR');
                 const count = Array.isArray(rawSymbols) ? rawSymbols.length : 0;
-                const sample = Array.isArray(rawSymbols) ? rawSymbols.slice(0, 5).map((item: any) => item.display_name || item.symbol).filter(Boolean).join(', ') : 'unexpected API response';
+                const sample = Array.isArray(rawSymbols) ? rawSymbols.slice(0, 5).map((item: any) => item.display_name || item.underlying_symbol_name || item.symbol || item.underlying_symbol).filter(Boolean).join(', ') : 'unexpected API response';
                 setError(count
                     ? `Deriv returned ${count} instruments, but none matched Volatility / Volatility (1s) / Jump. Returned examples: ${sample || 'none'}.`
                     : 'Deriv returned an empty active-symbol list. Reconnect your Deriv account and refresh markets; no live digit feed can start until Deriv returns instruments.');
