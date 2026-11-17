@@ -157,7 +157,7 @@ const DCircles = () => {
                 if (response?.error) throw new Error(response.error.message || 'Tick history request failed');
                 subscriptionId = response?.subscription?.id;
                 const prices = response?.history?.prices || [];
-                const times = response?.history?. times || response?.history?.times || [];
+                const times = response?.history?.times || [];
                 const initial: Tick[] = prices.map((quote: string | number, index: number) => {
                     const digit = digitFromQuote(quote, precision);
                     return digit === null ? null : { quote: String(quote), epoch: Number(times[index]), digit };
