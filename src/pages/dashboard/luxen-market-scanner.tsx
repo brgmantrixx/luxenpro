@@ -45,6 +45,8 @@ const LuxenMarketScanner=()=>{
  const [loading,setLoading]=useState(true),[error,setError]=useState('');
  const [paused,setPaused]=useState(false);
  const pausedRef=useRef(false),buffers=useRef<Record<string,Tick[]>>({});
+ const [signalCountdown,setSignalCountdown]=useState(25);
+ const signalSignatureRef=useRef('');
  const refreshMarkets=async()=>{
   setLoading(true);setError('');
   try{
@@ -110,13 +112,22 @@ const LuxenMarketScanner=()=>{
   return {market:m,scan,ready,result,signals};
  }),[markets,scans]);
  const signalRows=rows.flatMap(row=>row.signals.map(signal=>({market:row.market,signal})));
+ const signalSignature=signalRows.map(x=>x.market.symbol+':'+x.signal.key+':'+x.signal.entry).sort().join('|');
+ useEffect(()=>{
+  if(!signalSignature||signalSignature===signalSignatureRef.current)return;
+  signalSignatureRef.current=signalSignature;
+  setSignalCountdown(25);
+  const timer=window.setInterval(()=>setSignalCountdown(value=>Math.max(0,value-1)),1000);
+  return()=>window.clearInterval(timer);
+ },[signalSignature]);
+
  const category=(m:Market)=>marketGroup(m);
  const counts={ready:rows.filter(r=>r.ready).length,errors:rows.filter(r=>r.scan?.error).length,total:markets.length};
  const pause=()=>{pausedRef.current=true;setPaused(true);};
  const resume=()=>{pausedRef.current=false;setPaused(false);};
  return <section className='luxen-market-scanner lms-multi'>
   <header className='lms-header'><div><span className='lms-eyebrow'>LUXENPRO · LIVE DERIV INTELLIGENCE</span><h1>Luxen Market Scanner</h1><p>Scanning every supported Volatility and Jump market against your five signal rule sets.</p></div><b className={'lms-status '+(error?'lms-status--error':paused?'lms-status--paused':counts.ready===counts.total&&counts.total?'lms-status--live':'')}>{error?'ERROR':paused?'PAUSED':loading?'LOADING':counts.ready===counts.total&&counts.total?'ALL MARKETS LIVE':'SCANNING'}</b></header>
-  <div className='lms-toolbar lms-multi-toolbar'><div className='lms-multi-counts'><strong>{counts.ready} / {counts.total} READY</strong><span>{signalRows.length} qualifying signals</span><span>{counts.errors} feed errors</span></div><div className='lms-controls'><button onClick={()=>void refreshMarkets()} disabled={loading}>{loading?'Loading…':'↻ Refresh markets'}</button><button onClick={paused?resume:pause}>{paused?'Resume all feeds':'Pause all feeds'}</button></div></div>
+  <div className='lms-toolbar lms-multi-toolbar'><div className='lms-multi-counts'><strong>{counts.ready} / {counts.total} READY</strong><span>{signalRows.length} qualifying signals</span><span>{counts.errors} feed errors</span></div><div className='lms-countdown' role='status'><div><b>{signalCountdown>0?`SIGNAL WINDOW · ${signalCountdown}s`:'SIGNAL WINDOW EXPIRED'}</b><span>{signalCountdown>0?'Signal validity countdown':'Waiting for a new qualifying setup'}</span></div><i><em style={{width:(signalCountdown/25*100)+'%'}}/></i></div><div className='lms-controls'><button onClick={()=>void refreshMarkets()} disabled={loading}>{loading?'Loading…':'↻ Refresh markets'}</button><button onClick={paused?resume:pause}>{paused?'Resume all feeds':'Pause all feeds'}</button></div></div>
   {error&&<div className='lms-error' role='alert'>{error}</div>}
   <div className='lms-overview'>{(['EVEN','ODD','OVER_2','OVER_3','UNDER_7'] as SignalKey[]).map(k=><div key={k}><small>{k.replace('_',' ')}</small><b>{signalRows.filter(x=>x.signal.key===k).length} SIGNALS</b></div>)}</div>
   <section className='lms-results'><header><div><span>LIVE SCAN RESULTS</span><h2>Markets meeting your conditions</h2><p>Only markets with a complete 1,000-tick sample and every rule for that signal are listed.</p></div><b>{signalRows.length} MATCHES</b></header>
