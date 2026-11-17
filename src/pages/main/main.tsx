@@ -85,6 +85,7 @@ const AppWrapper = observer(() => {
     const [left_tab_shadow, setLeftTabShadow] = useState<boolean>(false);
     const [right_tab_shadow, setRightTabShadow] = useState<boolean>(false);
     const [activeLuxenModule, setActiveLuxenModule] = useState('Dashboard');
+    const [pendingFreeBot, setPendingFreeBot] = useState<string | null>(null);
 
     // Trade type modal state
     const [tradeTypeModalState, setTradeTypeModalState] = useState(getModalState());
@@ -130,6 +131,46 @@ const AppWrapper = observer(() => {
         return Number(hash.indexOf(String(tab_value)));
     };
     const active_hash_tab = GetHashedValue(active_tab);
+
+    // Load a public Free Bot template into the existing Deriv Blockly workspace.
+    React.useEffect(() => {
+        if (active_tab !== BOT_BUILDER || !pendingFreeBot) return;
+        let cancelled = false;
+        let attempts = 0;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const loadTemplate = async () => {
+            const workspace = window.Blockly?.derivWorkspace;
+            if (!workspace || blockly_store.is_loading) {
+                if (attempts++ < 40 && !cancelled) timer = setTimeout(loadTemplate, 250);
+                else if (!cancelled) {
+                    console.error('Free Bot could not load: Blockly workspace is not ready.');
+                    setPendingFreeBot(null);
+                }
+                return;
+            }
+            const file = pendingFreeBot;
+            setPendingFreeBot(null);
+            try {
+                const response = await fetch(`/bots/free/${encodeURIComponent(file)}`, { cache: 'no-cache' });
+                if (!response.ok) throw new Error(`Template request failed (${response.status})`);
+                const encoded = (await response.text()).trim();
+                const binary = atob(encoded);
+                const compressed = Uint8Array.from(binary, character => character.charCodeAt(0));
+                const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+                const xmlText = await new Response(stream).text();
+                const xml = window.Blockly.Xml.textToDom(xmlText);
+                if (cancelled) return;
+                workspace.clear();
+                window.Blockly.Xml.domToWorkspace(xml, workspace);
+                workspace.scrollCenter?.();
+            } catch (error) {
+                console.error('Unable to load Free Bot template:', error);
+                window.alert('This Free Bot could not be loaded. Please refresh and try again.');
+            }
+        };
+        loadTemplate();
+        return () => { cancelled = true; if (timer) clearTimeout(timer); };
+    }, [active_tab, pendingFreeBot, blockly_store.is_loading]);
 
     // Set up modal state change listener
     React.useEffect(() => {
@@ -415,7 +456,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-dbot-dashboard'
                             >
-                                <Dashboard handleTabChange={handleTabChange} section={activeLuxenModule} onNavigate={handleLuxenNavigation} />
+                                <Dashboard handleTabChange={handleTabChange} section={activeLuxenModule} onNavigate={handleLuxenNavigation} onLoadFreeBot={(file: string) => { setPendingFreeBot(file); setActiveLuxenModule('Bot Builder'); setActiveTab(BOT_BUILDER); }} />
                             </div>
                             <div
                                 label={
