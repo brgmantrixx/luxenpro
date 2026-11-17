@@ -7,15 +7,24 @@ type Tick = { quote: string; epoch: number; digit: number };
 type Status = 'CONNECTING' | 'LIVE' | 'PAUSED' | 'DISCONNECTED' | 'ERROR';
 const WINDOW_SIZE = 1000;
 
-const marketGroup = (market: Market) => {
+type MarketGroup = 'Volatility (1s)' | 'Volatility' | 'Jump';
+
+const marketGroup = (market: Market): MarketGroup | '' => {
     const name = String(market.display_name || '').toLowerCase();
     const symbol = String(market.symbol || '').toUpperCase();
+    const marketName = String(market.market || '').toLowerCase();
     const submarket = String(market.submarket || '').toLowerCase();
-    if (/1s/.test(name) || /^1HZ\d+V?$/.test(symbol)) return 'Volatility (1s)';
-    if (/jump/.test(name) || /jump/.test(submarket) || /^JD\d+/.test(symbol)) return 'Jump';
-    if (/volatility/.test(name) || /random/.test(submarket) || /^R_\d+$/.test(symbol)) return 'Volatility';
+    const metadata = [name, marketName, submarket].join(' ');
+    if (/1s/.test(name) || /^1HZ\\d+V?$/.test(symbol)) return 'Volatility (1s)';
+    if (/jump/.test(metadata) || /^JD\\d+/.test(symbol)) return 'Jump';
+    if (/volatility/.test(metadata) || /^R_\\d+V?$/.test(symbol)) return 'Volatility';
     return '';
 };
+
+const sortMarkets = (items: Market[]) => [...items].sort((a, b) => {
+    const getNumber = (market: Market) => Number((market.display_name.match(/\\d+/) || market.symbol.match(/\\d+/) || ['0'])[0]);
+    return getNumber(a) - getNumber(b) || a.display_name.localeCompare(b.display_name);
+});
 
 const decimalPlaces = (pipSize?: number) => {
     if (!pipSize || !Number.isFinite(pipSize) || pipSize <= 0) return undefined;
@@ -67,6 +76,11 @@ const DCircles = () => {
     const [marketLoading, setMarketLoading] = useState(true);
 
     const selectedMarket = markets.find(market => market.symbol === symbol);
+    const marketCategories: { title: MarketGroup; markets: Market[] }[] = [
+        { title: 'Volatility (1s)', markets: sortMarkets(markets.filter(market => marketGroup(market) === 'Volatility (1s)')) },
+        { title: 'Volatility', markets: sortMarkets(markets.filter(market => marketGroup(market) === 'Volatility')) },
+        { title: 'Jump', markets: sortMarkets(markets.filter(market => marketGroup(market) === 'Jump')) },
+    ];
     const counts = useMemo(() => {
         const result = Array(10).fill(0) as number[];
         ticks.forEach(tick => { result[tick.digit] += 1; });
@@ -227,14 +241,22 @@ const DCircles = () => {
             <div><span className='luxen-dc__eyebrow'>LUXENPRO · DERIV DIGIT INTELLIGENCE</span><h1>D-Circles Analysis</h1><p>Live last-digit distribution · rolling 1,000-tick window</p></div>
             <div className={'luxen-dc__status luxen-dc__status--' + status.toLowerCase()}><i />{status}</div>
         </header>
-        <div className='luxen-dc__toolbar'>
-            <label>MARKET<select value={symbol} onChange={event => setSymbol(event.target.value)} disabled={marketLoading || !markets.length}>
-                {(['Volatility (1s)', 'Volatility', 'Jump'] as const).map(group => <optgroup label={group} key={group}>
-                    {markets.filter(market => marketGroup(market) === group).map(market => <option key={market.symbol} value={market.symbol}>{market.display_name}</option>)}
-                </optgroup>)}
-            </select></label>
-            <div className='luxen-dc__controls'><button onClick={() => void loadMarkets()}>↻ Reconnect / refresh markets</button>{paused ? <button onClick={resume}>Resume</button> : <button onClick={pause}>Pause</button>}</div>
-            <span className='luxen-dc__window'>LAST {ticks.length.toLocaleString()} / {WINDOW_SIZE.toLocaleString()} TICKS</span>
+        <div className='luxen-dc__market-panel'>
+            <div className='luxen-dc__market-panel-head'>
+                <div><span className='luxen-dc__market-kicker'>LIVE DERIV INSTRUMENTS</span><h2>Select a market</h2><p>Choose any available index. Each selection starts its own live 1,000-tick D-Circles feed.</p></div>
+                <div className='luxen-dc__controls'><button onClick={() => void loadMarkets()} disabled={marketLoading}>{marketLoading ? 'Loading markets…' : '↻ Refresh markets'}</button>{paused ? <button onClick={resume}>Resume</button> : <button onClick={pause} disabled={!symbol}>Pause feed</button>}</div>
+            </div>
+            <div className='luxen-dc__market-categories'>
+                {marketCategories.map(category => <section className='luxen-dc__market-category' key={category.title}>
+                    <div className='luxen-dc__market-category-title'><h3>{category.title}</h3><span>{category.markets.length} available</span></div>
+                    {category.markets.length ? <div className='luxen-dc__market-buttons'>
+                        {category.markets.map(market => <button type='button' key={market.symbol} className={'luxen-dc__market-button ' + (symbol === market.symbol ? 'is-selected' : '')} onClick={() => setSymbol(market.symbol)} aria-pressed={symbol === market.symbol} title={market.symbol}>
+                            <span>{market.display_name}</span>{symbol === market.symbol && <i>LIVE FEED SELECTED</i>}
+                        </button>)}
+                    </div> : <p className='luxen-dc__market-empty'>{marketLoading ? 'Loading from Deriv…' : 'No instruments in this category were returned by Deriv.'}</p>}
+                </section>)}
+            </div>
+            <div className='luxen-dc__market-footer'><span className='luxen-dc__window'>LAST {ticks.length.toLocaleString()} / {WINDOW_SIZE.toLocaleString()} TICKS</span><span>Selected: <strong>{selectedMarket?.display_name || 'None'}</strong> · API symbol: {symbol || '—'}</span></div>
         </div>
         {error && <div className='luxen-dc__error' role='alert'>{error}</div>}
         <div className='luxen-dc__stats'>
