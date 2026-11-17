@@ -37,29 +37,93 @@ const analyze=(sample:Tick[])=>{
  if([6,7,8,9].every(d=>digitPct[d]<9.9)&&percentages.UNDER_6>61.5&&topUnder)signals.push({key:'UNDER_6',title:'UNDER 6',side:'OVER / UNDER',entry:least([6,7,8]),percent:percentages.UNDER_6,detail:'Digits 6–9 below 9.9%; green + blue in 0–5.'});
  return {counts,digitPct,green,blue,percentages,signals};
 };
+type MarketScan = { ticks: Tick[]; loading: boolean; error?: string };
+const SIGNAL_ORDER: SignalKey[] = ['EVEN','ODD','OVER_2','OVER_3','UNDER_7'];
 const LuxenMarketScanner=()=>{
- const [markets,setMarkets]=useState<Market[]>([]),[symbol,setSymbol]=useState(''),[ticks,setTicks]=useState<Tick[]>([]);
- const [status,setStatus]=useState('CONNECTING'),[error,setError]=useState(''),[paused,setPaused]=useState(false),[loading,setLoading]=useState(true);
- const pausedRef=useRef(false),lastSeen=useRef(''),previous=useRef<Record<string,number>>({});
- const [directions,setDirections]=useState<Record<string,Direction>>({});
- const selected=markets.find(m=>m.symbol===symbol);
- const current=useMemo(()=>analyze(ticks),[ticks]);
- const windowStats=useMemo(()=>Object.fromEntries(WINDOWS.map(w=>[w,analyze(ticks.slice(-w)).percentages])),[ticks]);
- const refreshMarkets=async()=>{setLoading(true);setError('');try{if(!api_base.api)throw new Error('Deriv connection is not ready. Sign in or reconnect first.');let r:any=await api_base.api.send({active_symbols:'brief'});if(r?.error)throw new Error(r.error.message);let raw=r?.active_symbols||r?.data?.active_symbols||[];if(!Array.isArray(raw)||!raw.length){r=await api_base.api.send({active_symbols:'full'});if(r?.error)throw new Error(r.error.message);raw=r?.active_symbols||r?.data?.active_symbols||[];}const list:Market[]=(Array.isArray(raw)?raw:[]).map((m:any)=>{const symbol=String(m.symbol||m.underlying_symbol||'');return {...m,symbol,display_name:m.display_name||m.underlying_symbol_name||symbol,precision:api_base.pip_sizes?.[symbol]??precisionFrom(m.pip_size??m.pip)};}).filter((m:any)=>m.symbol&&marketGroup(m));setMarkets(list);if(list.length)setSymbol(old=>list.some(m=>m.symbol===old)?old:list[0].symbol);else{setStatus('ERROR');const sample=Array.isArray(raw)?raw.slice(0,5).map((m:any)=>m.display_name||m.underlying_symbol_name||m.symbol||m.underlying_symbol).filter(Boolean).join(', '):'unexpected API response';setError(Array.isArray(raw)&&raw.length?'Deriv returned instruments, but none matched Volatility / Volatility (1s) / Jump. Examples: '+(sample||'none')+'.':'Deriv returned an empty active-symbol list. Reconnect your Deriv account and refresh markets.');}}catch(e){setError(e instanceof Error?e.message:'Could not load markets');setStatus('DISCONNECTED');}finally{setLoading(false);}};
+ const [markets,setMarkets]=useState<Market[]>([]);
+ const [scans,setScans]=useState<Record<string,MarketScan>>({});
+ const [loading,setLoading]=useState(true),[error,setError]=useState('');
+ const [paused,setPaused]=useState(false);
+ const pausedRef=useRef(false),buffers=useRef<Record<string,Tick[]>>({});
+ const refreshMarkets=async()=>{
+  setLoading(true);setError('');
+  try{
+   if(!api_base.api)throw new Error('Deriv connection is not ready. Sign in or reconnect first.');
+   let r:any=await api_base.api.send({active_symbols:'brief'});
+   if(r?.error)throw new Error(r.error.message||'Could not load Deriv markets');
+   let raw=r?.active_symbols||r?.data?.active_symbols||[];
+   if(!Array.isArray(raw)||!raw.length){r=await api_base.api.send({active_symbols:'full'});if(r?.error)throw new Error(r.error.message);raw=r?.active_symbols||r?.data?.active_symbols||[];}
+   const list:Market[]=(Array.isArray(raw)?raw:[]).map((m:any)=>{
+    const symbol=String(m.symbol||m.underlying_symbol||'');
+    return {...m,symbol,display_name:m.display_name||m.underlying_symbol_name||symbol,precision:api_base.pip_sizes?.[symbol]??precisionFrom(m.pip_size??m.pip)};
+   }).filter((m:any)=>m.symbol&&marketGroup(m));
+   const unique=Array.from(new Map(list.map(m=>[m.symbol,m])).values()).sort((a,b)=>a.display_name.localeCompare(b.display_name,undefined,{numeric:true}));
+   setMarkets(unique);
+   if(!unique.length)throw new Error('Deriv returned instruments, but none matched the supported Volatility, Volatility (1s), or Jump markets.');
+  }catch(e){setError(e instanceof Error?e.message:'Unable to discover Deriv markets');}
+  finally{setLoading(false);}
+ };
  useEffect(()=>{void refreshMarkets();},[]);
- useEffect(()=>{if(!symbol||!api_base.api)return;let active=true,subId:string|number|undefined,stream:any;const precision=markets.find(m=>m.symbol===symbol)?.precision;
-  setTicks([]);setStatus('CONNECTING');setError('');setPaused(false);pausedRef.current=false;lastSeen.current='';previous.current={};setDirections({});
-  const accept=(q:string|number,epoch:number)=>{if(!active||pausedRef.current)return;const digit=getDigit(q,precision);if(digit===null||!Number.isFinite(epoch))return;const key=epoch+':'+q;if(lastSeen.current===key)return;lastSeen.current=key;const tick={quote:String(q),epoch,digit};
-   setTicks(old=>{const next=old.length&&old[old.length-1].epoch===epoch&&old[old.length-1].quote===tick.quote?old:[...old.slice(-999),tick];const updates:Record<string,Direction>={};WINDOWS.forEach(w=>{const sample=next.slice(-w);if(sample.length<w)return;const values=analyze(sample).percentages;(Object.keys(values) as SignalKey[]).forEach(k=>{const id=k+':'+w,now=values[k],before=previous.current[id];updates[id]=before===undefined?'new':now-before>=0.07?'up':now-before<=-0.07?'down':'flat';previous.current[id]=now;});});if(Object.keys(updates).length)setDirections(oldDirs=>({...oldDirs,...updates}));return next;});setStatus('LIVE');};
-  const start=async()=>{try{stream=api_base.api!.onMessage().subscribe(({data}:any)=>{if(data?.msg_type==='tick'&&data?.tick?.symbol===symbol)accept(data.tick.quote,Number(data.tick.epoch));});const r:any=await api_base.api!.send({ticks_history:symbol,count:1000,end:'latest',style:'ticks',subscribe:1});if(!active){if(r?.subscription?.id)api_base.api?.send({forget:r.subscription.id});return;}if(r?.error)throw new Error(r.error.message||'Tick history failed');subId=r?.subscription?.id;const p=r?.history?.prices||[],t=r?.history?.times||[];const initial:Tick[]=p.map((q:string|number,i:number)=>{const d=getDigit(q,precision);return d===null?null:{quote:String(q),epoch:Number(t[i]),digit:d};}).filter((x:Tick|null):x is Tick=>!!x&&Number.isFinite(x.epoch)).slice(-1000);setTicks(initial);const last=initial[initial.length-1];lastSeen.current=last?last.epoch+':'+last.quote:'';setStatus('LIVE');}catch(e){if(active){setStatus('ERROR');setError(e instanceof Error?e.message:'Tick subscription failed');}}};void start();return()=>{active=false;stream?.unsubscribe();if(subId)api_base.api?.send({forget:subId});};},[symbol,markets]);
- const renderSignal=(s:Signal)=><article className={'lms-signal lms-signal--'+s.key.toLowerCase()} key={s.key}><div className='lms-signal__top'><span>{selected?.display_name||'Selected market'}</span><b>{s.title} SIGNAL</b></div><div className='lms-entry'><small>ENTRY DIGIT</small><strong>{s.entry}</strong><span>Least appearing in the required entry group</span></div><p>{s.detail}</p><div className='lms-signal__percent'>Overall {s.title}: <b>{s.percent.toFixed(2)}%</b></div><div className='lms-trends'><span>1000 / 500 / 200 / 100 TICK TREND</span>{WINDOWS.map(w=>{const d=directions[s.key+':'+w]||'new';return <div className='lms-trend' key={w}><small>{w} ticks</small><b className={'is-'+d} title={d}>{d==='up'?'↑':d==='down'?'↓':d==='flat'?'→':'·'}</b><em>{windowStats[w]?.[s.key].toFixed(2)||'0.00'}%</em></div>;})}</div></article>;
- const empty=(name:string)=><div className='lms-empty'><span>◎</span><b>NO CONFIRMED {name} SIGNAL</b><p>All specified 1,000-tick filters must pass before a signal appears.</p></div>;
- const parity=current.signals.filter(s=>s.side==='EVEN / ODD'),contracts=current.signals.filter(s=>s.side==='OVER / UNDER');
- return <section className='luxen-market-scanner'><header className='lms-header'><div><span className='lms-eyebrow'>LUXENPRO · LIVE DERIV INTELLIGENCE</span><h1>Luxen Market Scanner</h1><p>Two rule-based scanners analysing the selected market's latest 1,000 ticks.</p></div><b className={'lms-status lms-status--'+status.toLowerCase()}>{status}</b></header>
- <div className='lms-toolbar'><label>DERIV MARKET<select value={symbol} disabled={loading||!markets.length} onChange={e=>setSymbol(e.target.value)}>{(['Volatility (1s)','Volatility','Jump']).map(group=><optgroup label={group} key={group}>{markets.filter(m=>marketGroup(m)===group).map(m=><option key={m.symbol} value={m.symbol}>{m.display_name}</option>)}</optgroup>)}</select></label><div className='lms-controls'><button onClick={()=>void refreshMarkets()}>↻ Refresh markets</button><button onClick={()=>{pausedRef.current=!paused;setPaused(pausedRef.current);setStatus(pausedRef.current?'PAUSED':'LIVE');}}>{paused?'Resume stream':'Pause stream'}</button></div><strong>{ticks.length.toLocaleString()} / 1,000 TICKS</strong></div>{error&&<div className='lms-error' role='alert'>{error}</div>}
- <div className='lms-overview'>{(['EVEN','ODD','OVER_2','OVER_3','UNDER_7','UNDER_6'] as SignalKey[]).map(k=><div key={k}><small>{k.replace('_',' ')}</small><b>{current.percentages[k].toFixed(2)}%</b></div>)}</div>
- <div className='lms-panels'><section className='lms-panel'><header><span>01 · PARITY ANALYSIS</span><h2>Luxen Even/Odd Market Scanner</h2><p>1,000 ticks · leading D-Circles + percentage strength / weakness</p></header>{parity.length?parity.map(renderSignal):empty('EVEN / ODD')}<div className='lms-rules'><b>ODD</b> Green + blue are odd; Odd &gt; 51.5%; at least 4 odd digits &gt; 10%; at least 4 even digits &lt; 10%; entry = least appearing even digit.<hr/><b>EVEN</b> Green + blue are even; Even &gt; 51.5%; at least 4 even digits &gt; 10%; at least 4 odd digits &lt; 10%; entry = least appearing odd digit.</div></section>
- <section className='lms-panel'><header><span>02 · CONTRACT ANALYSIS</span><h2>Luxen Over/Under Market Scanner</h2><p>1,000 ticks · digit thresholds + leading D-Circles</p></header>{contracts.length?contracts.map(renderSignal):empty('OVER / UNDER')}<div className='lms-rules'><b>OVER 2</b> Digits 0–2 &lt; 9.9%; Over 2 &gt; 71.5%; green + blue in 4–9; entry least between 1 &amp; 2.<hr/><b>OVER 3</b> Digits 0–3 &lt; 9.9%; Over 3 &gt; 61.5%; green + blue in 4–9; entry least between 1, 2 &amp; 3.<hr/><b>UNDER 7</b> Digits 7–9 &lt; 9.9%; Under 7 &gt; 71.5%; green + blue in 0–5; entry least between 7 &amp; 8.<hr/><b>UNDER 6</b> Digits 6–9 &lt; 9.9%; Under 6 &gt; 61.5%; green + blue in 0–5; entry least between 6, 7 &amp; 8.</div></section></div>
- <p className='lms-disclaimer'>↑ / ↓ compares each window's overall percentage with its value on the preceding live tick update. An increase of at least 0.07 percentage points shows ↑; a decrease of at least 0.07 shows ↓; smaller movement shows →. Signals are historical-frequency filters, not guarantees of the next tick.</p></section>;
+ useEffect(()=>{
+  if(!markets.length||!api_base.api)return;
+  let active=true;const subscriptions:(string|number)[]=[];
+  buffers.current={};
+  setScans(Object.fromEntries(markets.map(m=>[m.symbol,{ticks:[],loading:true}])));
+  const precisionFor=(symbol:string)=>markets.find(m=>m.symbol===symbol)?.precision;
+  const accept=(symbol:string,q:string|number,epoch:number)=>{
+   if(!active||pausedRef.current||!Number.isFinite(epoch))return;
+   const digit=getDigit(q,precisionFor(symbol));if(digit===null)return;
+   const tick:Tick={quote:String(q),epoch,digit};
+   const old=buffers.current[symbol]||[];
+   if(old.some(t=>t.epoch===epoch&&t.quote===tick.quote))return;
+   const next=[...old,tick].sort((a,b)=>a.epoch-b.epoch).slice(-1000);
+   buffers.current[symbol]=next;
+   setScans(current=>({...current,[symbol]:{ticks:next,loading:next.length<1000}}));
+  };
+  const stream=api_base.api.onMessage().subscribe(({data}:any)=>{
+   if(data?.msg_type!=='tick'||!data?.tick?.symbol)return;
+   accept(String(data.tick.symbol),data.tick.quote,Number(data.tick.epoch));
+  });
+  const startMarket=async(m:Market)=>{
+   try{
+    const r:any=await api_base.api!.send({ticks_history:m.symbol,count:1000,end:'latest',style:'ticks',subscribe:1});
+    if(!active){if(r?.subscription?.id)api_base.api?.send({forget:r.subscription.id});return;}
+    if(r?.error)throw new Error(r.error.message||'Tick history request failed');
+    if(r?.subscription?.id)subscriptions.push(r.subscription.id);
+    const prices=r?.history?.prices||[],times=r?.history?.times||[];
+    const history:Tick[]=prices.map((q:string|number,i:number)=>{const digit=getDigit(q,m.precision);return digit===null?null:{quote:String(q),epoch:Number(times[i]),digit};}).filter((t:Tick|null):t is Tick=>!!t&&Number.isFinite(t.epoch));
+    const live=buffers.current[m.symbol]||[];
+    const merged=[...history,...live].sort((a,b)=>a.epoch-b.epoch).filter((t,i,a)=>i===0||t.epoch!==a[i-1].epoch||t.quote!==a[i-1].quote).slice(-1000);
+    buffers.current[m.symbol]=merged;
+    if(active)setScans(current=>({...current,[m.symbol]:{ticks:merged,loading:merged.length<1000}}));
+   }catch(e){
+    if(active)setScans(current=>({...current,[m.symbol]:{ticks:buffers.current[m.symbol]||[],loading:false,error:e instanceof Error?e.message:'Tick feed failed'}}));
+   }
+  };
+  void Promise.all(markets.map(startMarket));
+  return()=>{active=false;stream.unsubscribe();subscriptions.forEach(id=>api_base.api?.send({forget:id}));};
+ },[markets]);
+ const rows=useMemo(()=>markets.map(m=>{
+  const scan=scans[m.symbol];const ready=!!scan&&scan.ticks.length>=1000;
+  const result=ready?analyze(scan.ticks.slice(-1000)):null;
+  const signals=(result?.signals||[]).filter(s=>SIGNAL_ORDER.includes(s.key));
+  return {market:m,scan,ready,result,signals};
+ }),[markets,scans]);
+ const signalRows=rows.flatMap(row=>row.signals.map(signal=>({market:row.market,signal})));
+ const category=(m:Market)=>marketGroup(m);
+ const counts={ready:rows.filter(r=>r.ready).length,errors:rows.filter(r=>r.scan?.error).length,total:markets.length};
+ const pause=()=>{pausedRef.current=true;setPaused(true);};
+ const resume=()=>{pausedRef.current=false;setPaused(false);};
+ return <section className='luxen-market-scanner lms-multi'>
+  <header className='lms-header'><div><span className='lms-eyebrow'>LUXENPRO · LIVE DERIV INTELLIGENCE</span><h1>Luxen Market Scanner</h1><p>Scanning every supported Volatility and Jump market against your five signal rule sets.</p></div><b className={'lms-status '+(error?'lms-status--error':paused?'lms-status--paused':counts.ready===counts.total&&counts.total?'lms-status--live':'')}>{error?'ERROR':paused?'PAUSED':loading?'LOADING':counts.ready===counts.total&&counts.total?'ALL MARKETS LIVE':'SCANNING'}</b></header>
+  <div className='lms-toolbar lms-multi-toolbar'><div className='lms-multi-counts'><strong>{counts.ready} / {counts.total} READY</strong><span>{signalRows.length} qualifying signals</span><span>{counts.errors} feed errors</span></div><div className='lms-controls'><button onClick={()=>void refreshMarkets()} disabled={loading}>{loading?'Loading…':'↻ Refresh markets'}</button><button onClick={paused?resume:pause}>{paused?'Resume all feeds':'Pause all feeds'}</button></div></div>
+  {error&&<div className='lms-error' role='alert'>{error}</div>}
+  <div className='lms-overview'>{(['EVEN','ODD','OVER_2','OVER_3','UNDER_7'] as SignalKey[]).map(k=><div key={k}><small>{k.replace('_',' ')}</small><b>{signalRows.filter(x=>x.signal.key===k).length} SIGNALS</b></div>)}</div>
+  <section className='lms-results'><header><div><span>LIVE SCAN RESULTS</span><h2>Markets meeting your conditions</h2><p>Only markets with a complete 1,000-tick sample and every rule for that signal are listed.</p></div><b>{signalRows.length} MATCHES</b></header>
+   {signalRows.length?<div className='lms-results-table'><div className='lms-result-head'><span>MARKET</span><span>CONDITION</span><span>ENTRY DIGIT</span><span>CONFIRMATION</span></div>{signalRows.map(({market,signal})=><article className='lms-result-row' key={market.symbol+'-'+signal.key}><div><strong>{market.display_name}</strong><small>{market.symbol} · {category(market)}</small></div><b className={'lms-condition lms-condition--'+signal.key.toLowerCase()}>{signal.title}</b><strong className='lms-result-digit'>{signal.entry}</strong><span>{signal.percent.toFixed(2)}% overall<br/><small>{signal.detail}</small></span></article>)}</div>:<div className='lms-empty lms-all-empty'><b>{counts.ready===0?'BUILDING 1,000-TICK SAMPLES':'NO MARKETS CURRENTLY MEET THE RULES'}</b><p>{counts.ready===0?'The scanner is loading historical ticks and starting live subscriptions for every supported market.':'All supported markets are being monitored. A result appears only when every condition for a strategy is satisfied.'}</p></div>}
+  </section>
+  <section className='lms-market-status'><header><h2>Market feed monitor</h2><span>{counts.ready} live-ready / {counts.total} markets</span></header><div className='lms-market-groups'>{(['Volatility (1s)','Volatility','Jump']).map(group=><div className='lms-market-group' key={group}><h3>{group}</h3>{rows.filter(r=>category(r.market)===group).map(row=><div className='lms-market-item' key={row.market.symbol}><span>{row.market.display_name}</span><b className={row.scan?.error?'has-error':row.ready?'is-ready':'is-loading'}>{row.scan?.error?'ERROR':row.ready?'LIVE · 1,000 TICKS':(row.scan?.ticks.length||0)+'/1,000'}</b></div>)}</div>)}</div></section>
+  <p className='lms-disclaimer'>Signals are based on the latest 1,000 ticks per market and are historical-frequency filters, not guarantees of the next digit. All supported market feeds use your connected Deriv session.</p>
+ </section>;
 };
 export default LuxenMarketScanner;
