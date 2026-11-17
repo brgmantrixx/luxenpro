@@ -65,3 +65,11 @@
 @media(max-width:1100px){.luxen-dc__circles{grid-template-columns:repeat(5,minmax(0,1fr));row-gap:15px}.luxen-dc__circle{width:min(100%,118px)}}
 @media(max-width:700px){.luxen-dc{padding:13px}.luxen-dc__header{align-items:flex-start;flex-direction:column}.luxen-dc__header h1{font-size:23px}.luxen-dc__stats{grid-template-columns:repeat(2,minmax(0,1fr))}.luxen-dc__signal-row,.luxen-dc__patterns{grid-template-columns:1fr}.luxen-dc__toolbar{align-items:stretch;flex-direction:column}.luxen-dc__toolbar select{width:100%}.luxen-dc__window{align-self:flex-start}.luxen-dc__panel{padding:13px}.luxen-dc__circle b{font-size:23px}}
 @media(max-width:390px){.luxen-dc__stats{grid-template-columns:1fr}.luxen-dc__circle{width:100%;max-width:90px}.luxen-dc__circles{gap:5px}}
+
+.luxen-dc__floating-signal{position:fixed;z-index:1200;right:24px;bottom:24px;display:grid;gap:4px;min-width:168px;padding:13px 17px;border:1px solid #ffd700;border-radius:13px;color:#fff;background:#111827;box-shadow:0 0 0 1px #ffd70033,0 0 22px #ef444477,0 12px 30px #0008;animation:luxen-signal-pop .28s ease-out}
+.luxen-dc__floating-signal span{font-size:15px;font-weight:950;letter-spacing:1px}
+.luxen-dc__floating-signal small{color:#c0cada;font-size:10px}
+.luxen-dc__floating-signal.is-odd span{color:#ff526f;text-shadow:0 0 12px #ef4444}
+.luxen-dc__floating-signal.is-even span{color:#35d98a;text-shadow:0 0 12px #35d98a}
+@keyframes luxen-signal-pop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){.luxen-dc__floating-signal{right:12px;bottom:14px;min-width:150px;padding:10px 13px}}
