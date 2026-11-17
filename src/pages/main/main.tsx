@@ -382,7 +382,7 @@ const AppWrapper = observer(() => {
         <React.Fragment>
             <div className='main'>
                 <nav className='luxen-global-nav' aria-label='LUXENPRO trading modules'>
-                    {['Dashboard', 'Bot Builder', 'Free Bots', 'Premium Bots', 'D-Circles', 'Speed Lab', 'Pro Hedge', 'Charts', 'Manual Trading', 'Risk Calculator'].map((module, index) => (
+                    {['Dashboard', 'Bot Builder', 'Free Bots', 'Premium Bots', 'D-Circles', 'Luxen Market Scanner', 'Pro Hedge', 'Charts', 'Manual Trading', 'Risk Calculator'].map((module, index) => (
                         <button
                             key={module}
                             type='button'
