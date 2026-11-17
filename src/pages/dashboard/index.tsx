@@ -13,11 +13,35 @@ const nav: { label: Section; icon: string }[] = [
     { label: 'Risk Calculator', icon: '▣' }, { label: 'Charts', icon: '◔' }, { label: 'Manual Trading', icon: '◈' },
 ];
 const bots = [
-    { id: '01', name: 'Luxen Expert Speed Bot', market: 'R_10 · OVER / UNDER', description: 'Digit Over/Under strategy for the R_10 synthetic index. Load the original Blockly strategy into your workspace.', file: 'luxen-expert-speed-bot.xml', tone: 'blue' },
-    { id: '02', name: 'LUXEN STORM 24 AI', market: '1HZ100V · OVER / UNDER', description: 'Digit Over/Under strategy for the 1HZ100V volatility index, with the original uploaded stake and recovery settings.', file: 'luxen-storm-24-ai.xml', tone: 'red' },
-    { id: '03', name: 'LUXEN EVEN ODD V2 PRO', market: '1HZ75V · EVEN / ODD', description: 'Even/Odd digit strategy for the 1HZ75V synthetic index. Original Blockly blocks and settings are preserved.', file: 'luxen-even-odd-v2-pro.xml', tone: 'cyan' },
+    { id: '01', name: 'Luxen Expert Speed Bot', market: 'R_10 · OVER / UNDER', description: 'Digit Over/Under strategy for the R_10 synthetic index. Load the original Blockly strategy into your workspace.', file: 'luxen-expert-speed-bot.xml.gz.b64', tone: 'blue' },
+    { id: '02', name: 'LUXEN STORM 24 AI', market: '1HZ100V · OVER / UNDER', description: 'Digit Over/Under strategy for the 1HZ100V volatility index, with the original uploaded stake and recovery settings.', file: 'luxen-storm-24-ai.xml.gz.b64', tone: 'red' },
+    { id: '03', name: 'LUXEN EVEN ODD V2 PRO', market: '1HZ75V · EVEN / ODD', description: 'Even/Odd digit strategy for the 1HZ75V synthetic index. Original Blockly blocks and settings are preserved.', file: 'luxen-even-odd-v2-pro.xml.gz.b64', tone: 'cyan' },
 ];
-const RobotArt = ({ tone, id }: { tone: string; id: string }) => <div className={`luxen-bot-art luxen-bot-art--${tone}`} aria-hidden='true'>
+const decodeFreeBotAsset = async (file: string): Promise<string> => {
+    const response = await fetch(`/bots/free/${encodeURIComponent(file)}`, { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`Free Bot asset request failed (${response.status})`);
+    const encoded = (await response.text()).trim();
+    const binary = atob(encoded);
+    const compressed = Uint8Array.from(binary, character => character.charCodeAt(0));
+    const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return await new Response(stream).text();
+};
+const downloadFreeBot = async (file: string) => {
+    try {
+        const xml = await decodeFreeBotAsset(file);
+        const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.replace('.xml.gz.b64', '.xml');
+        link.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Unable to download Free Bot:', error);
+        window.alert('This Free Bot download is temporarily unavailable.');
+    }
+};
+\nconst RobotArt = ({ tone, id }: { tone: string; id: string }) => <div className={`luxen-bot-art luxen-bot-art--${tone}`} aria-hidden='true'>
     <div className='luxen-art-grid'/><div className='luxen-art-orbit'/><div className='luxen-art-orbit luxen-art-orbit--two'/>
     <div className='luxen-robot'><div className='luxen-robot__antenna'/><div className='luxen-robot__head'><i/><i/></div><div className='luxen-robot__neck'/><div className='luxen-robot__body'><span>{id}</span></div><div className='luxen-robot__arm luxen-robot__arm--left'/><div className='luxen-robot__arm luxen-robot__arm--right'/></div>
     <span className='luxen-art-data luxen-art-data--left'>0 2 4 6 8</span><span className='luxen-art-data luxen-art-data--right'>1 3 7 9</span><span className='luxen-art-caption'>AI STRATEGY ENGINE</span>
@@ -46,7 +70,7 @@ const Dashboard = observer(({ onLoadFreeBot }: { onLoadFreeBot?: (file: string) 
             <div className='luxen-section-heading'><div><span className='luxen-eyebrow'>BOT MARKETPLACE</span><h1>Free Bots</h1><p>Choose a strategy, load it into Bot Builder, and configure your own risk settings.</p></div><span className='luxen-open-count'>3 FREE BOTS</span></div>
             <div className='luxen-bot-grid'>{bots.map(bot => <article className='luxen-bot-card' key={bot.id}>
                 <div className='luxen-card-visual'><span className={`luxen-market-tag luxen-market-tag--${bot.tone}`}>{bot.market}</span><span className='luxen-card-number'>{bot.id}</span><RobotArt tone={bot.tone} id={bot.id}/><span className='luxen-access'>FREE · GUEST ACCESS</span></div>
-                <div className='luxen-card-content'><h2><span>{bot.id}</span>{bot.name}</h2><p>{bot.description}</p><button className='luxen-load-button' onClick={() => onLoadFreeBot?.(bot.file)}>Load in Bot Builder <b>→</b></button><a className='luxen-download-link' href={`/bots/free/${bot.file}`} download>Download XML template</a></div>
+                <div className='luxen-card-content'><h2><span>{bot.id}</span>{bot.name}</h2><p>{bot.description}</p><button className='luxen-load-button' onClick={() => onLoadFreeBot?.(bot.file)}>Load in Bot Builder <b>→</b></button><button type='button' className='luxen-download-link' onClick={() => downloadFreeBot(bot.file)}>Download XML template ↓</button></div>
             </article>)}</div>
         </section>}
         {section === 'Dashboard' && <section className='luxen-module-page'><span className='luxen-eyebrow'>ACCOUNT OVERVIEW</span><h1>Dashboard</h1><p className='luxen-module-lead'>Your Deriv trading workspace at a glance.</p><div className='luxen-stat-grid'><div className='luxen-stat-card'><small>CONNECTION</small><strong>Deriv API</strong><span>Existing connection retained</span></div><div className='luxen-stat-card'><small>BOT WORKSPACE</small><strong>Ready</strong><span>Open Bot Builder to create a strategy</span></div><div className='luxen-stat-card'><small>BOT LIBRARY</small><strong>3</strong><span>Free strategy templates</span></div></div><button className='luxen-primary-action' onClick={builder}>Open Bot Builder →</button></section>}
