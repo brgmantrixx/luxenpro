@@ -8,7 +8,7 @@ type SignalKey = 'ODD'|'EVEN'|'OVER_2'|'OVER_3'|'UNDER_7'|'UNDER_6';
 type Signal = {key:SignalKey;title:string;side:string;entry:number;percent:number;detail:string};
 type Direction = 'up'|'down'|'flat'|'new';
 const WINDOWS=[1000,500,200,100] as const;
-const marketGroup=(m:any)=>{const n=String(m.display_name||'').toLowerCase(),s=String(m.symbol||'').toUpperCase(),sub=String(m.submarket||m.submarket_display_name||'').toLowerCase();if(/1s/.test(n)||/^1HZ\\d+V?$/.test(s))return 'Volatility (1s)';if(/jump/.test(n)||/jump/.test(sub)||/^JD\\d+/.test(s))return 'Jump';if(/volatility/.test(n)||/random/.test(sub)||/^R_\\d+$/.test(s))return 'Volatility';return '';};
+const marketGroup=(m:any)=>{const n=String(m.display_name||'').toLowerCase(),s=String(m.symbol||'').toUpperCase(),sub=String(m.submarket||m.submarket_display_name||'').toLowerCase();if(/1s/.test(n)||/^1HZ\d+V?$/.test(s))return 'Volatility (1s)';if(/jump/.test(n)||/jump/.test(sub)||/^JD\d+/.test(s))return 'Jump';if(/volatility/.test(n)||/random/.test(sub)||/^R_\d+$/.test(s))return 'Volatility';return '';};
 const precisionFrom=(p?:number)=>{if(!p||!Number.isFinite(p)||p<=0)return undefined;const s=String(p);return s.includes('e-')?Number(s.split('e-')[1]):(s.split('.')[1]||'').length;};
 const getDigit=(q:string|number,p?:number)=>{const s=p===undefined?String(q):Number(q).toFixed(p);const d=(s.split('.')[1]||'').slice(-1);return /^\d$/.test(d)?Number(d):null;};
 const pct=(n:number,t:number)=>t?n/t*100:0;
