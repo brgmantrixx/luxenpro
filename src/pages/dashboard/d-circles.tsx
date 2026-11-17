@@ -173,6 +173,8 @@ const DCircles = () => {
                 setTicks(initial);
                 setReceived(initial.length);
                 setLatestTick(initial[initial.length - 1] || null);
+                const lastInitialTick = initial[initial.length - 1];
+                lastSeenRef.current = lastInitialTick ? String(lastInitialTick.epoch) + ':' + lastInitialTick.quote : '';
                 setStatus(pausedRef.current ? 'PAUSED' : 'LIVE');
             } catch (e) {
                 if (!active) return;
