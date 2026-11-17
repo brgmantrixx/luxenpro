@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api_base } from '@/external/bot-skeleton';
+import './d-circles.scss';
 
 type Market = { symbol: string; display_name: string; market: string; submarket?: string; pip_size?: number };
 type Tick = { quote: string; epoch: number; digit: number };
@@ -58,6 +59,7 @@ const DCircles = () => {
     const [status, setStatus] = useState<Status>('CONNECTING');
     const [error, setError] = useState('');
     const [paused, setPaused] = useState(false);
+    const pausedRef = useRef(false);
     const [latestTick, setLatestTick] = useState<Tick | null>(null);
     const [received, setReceived] = useState(0);
     const [marketLoading, setMarketLoading] = useState(true);
@@ -114,6 +116,7 @@ const DCircles = () => {
         let messageSubscription: { unsubscribe: () => void } | undefined;
         setStatus('CONNECTING');
         setPaused(false);
+        pausedRef.current = false;
         setTicks([]);
         setLatestTick(null);
         setReceived(0);
@@ -123,7 +126,7 @@ const DCircles = () => {
         const precision = market?.pip_size ?? api_base.pip_sizes?.[symbol];
 
         const acceptTick = (quote: string | number, epoch: number) => {
-            if (!active || paused) return;
+            if (!active || pausedRef.current) return;
             const digit = digitFromQuote(quote, precision);
             if (digit === null || !Number.isFinite(epoch)) return;
             const next: Tick = { quote: String(quote), epoch, digit };
@@ -165,7 +168,7 @@ const DCircles = () => {
                 setTicks(initial);
                 setReceived(initial.length);
                 setLatestTick(initial[initial.length - 1] || null);
-                setStatus('LIVE');
+                setStatus(pausedRef.current ? 'PAUSED' : 'LIVE');
             } catch (e) {
                 if (!active) return;
                 setStatus('ERROR');
@@ -178,19 +181,21 @@ const DCircles = () => {
             messageSubscription?.unsubscribe();
             if (subscriptionId && api_base.api) api_base.api.send({ forget: subscriptionId });
         };
-    }, [symbol, markets, paused]);
+    }, [symbol, markets]);
 
     const latestPattern = ticks.slice(-20);
     const evenOddPattern = patternText(latestPattern, digit => digit % 2 === 0, 'E', 'O');
     const overUnderPattern = patternText(latestPattern, digit => digit >= 5, 'O', 'U');
 
     const pause = () => {
+        pausedRef.current = true;
         setPaused(true);
         setStatus('PAUSED');
     };
     const resume = () => {
+        pausedRef.current = false;
         setPaused(false);
-        setStatus('CONNECTING');
+        setStatus('LIVE');
     };
 
     return <section className='luxen-dc'>
