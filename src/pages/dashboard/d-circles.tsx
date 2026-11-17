@@ -15,14 +15,14 @@ const marketGroup = (market: Market): MarketGroup | '' => {
     const marketName = String(market.market || '').toLowerCase();
     const submarket = String(market.submarket || '').toLowerCase();
     const metadata = [name, marketName, submarket].join(' ');
-    if (/1s/.test(name) || /^1HZ\\d+V?$/.test(symbol)) return 'Volatility (1s)';
-    if (/jump/.test(metadata) || /^JD\\d+/.test(symbol)) return 'Jump';
-    if (/volatility/.test(metadata) || /^R_\\d+V?$/.test(symbol)) return 'Volatility';
+    if (/1s/.test(name) || /^1HZ\d+V?$/.test(symbol)) return 'Volatility (1s)';
+    if (/jump/.test(metadata) || /^JD\d+/.test(symbol)) return 'Jump';
+    if (/volatility/.test(metadata) || /^R_\d+V?$/.test(symbol)) return 'Volatility';
     return '';
 };
 
 const sortMarkets = (items: Market[]) => [...items].sort((a, b) => {
-    const getNumber = (market: Market) => Number((market.display_name.match(/\\d+/) || market.symbol.match(/\\d+/) || ['0'])[0]);
+    const getNumber = (market: Market) => Number((market.display_name.match(/\d+/) || market.symbol.match(/\d+/) || ['0'])[0]);
     return getNumber(a) - getNumber(b) || a.display_name.localeCompare(b.display_name);
 });
 
