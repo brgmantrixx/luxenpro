@@ -114,7 +114,8 @@ const LuxenMarketScanner=()=>{
  const signalRows=rows.flatMap(row=>row.signals.map(signal=>({market:row.market,signal})));
  const signalSignature=signalRows.map(x=>x.market.symbol+':'+x.signal.key+':'+x.signal.entry).sort().join('|');
  useEffect(()=>{
-  if(!signalSignature||signalSignature===signalSignatureRef.current)return;
+  if(!signalSignature){signalSignatureRef.current='';return;}
+  if(signalSignature===signalSignatureRef.current)return;
   signalSignatureRef.current=signalSignature;
   setSignalCountdown(25);
   const timer=window.setInterval(()=>setSignalCountdown(value=>Math.max(0,value-1)),1000);
