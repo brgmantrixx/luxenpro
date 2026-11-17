@@ -37,3 +37,23 @@
 .lms-market-item .is-ready{color:#45e49a}.lms-market-item .is-loading{color:#f4c75b}.lms-market-item .has-error{color:#ff697f}
 @media(max-width:850px){.lms-result-head,.lms-result-row{grid-template-columns:minmax(140px,1fr) 80px 55px minmax(130px,1fr)}.lms-market-groups{grid-template-columns:1fr}}
 @media(max-width:650px){.luxen-market-scanner.lms-multi{padding:10px}.lms-result-head{display:none}.lms-result-row{grid-template-columns:1fr 75px 42px;gap:7px}.lms-result-row>span{grid-column:1/-1}.lms-multi .lms-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.lms-multi-toolbar{align-items:flex-start}.lms-results>header{align-items:flex-start}}
+
+/* Wide 16:9 scanner workspace with a visible 25-second signal validity bar */
+.luxen-market-scanner.lms-multi {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    max-height: calc(100vh - 15rem);
+    min-height: 48rem;
+    overflow: auto;
+}
+.lms-countdown { display:grid; gap:5px; min-width:190px; flex:1; max-width:280px; }
+.lms-countdown>div { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.lms-countdown b { color:#ffd76b; font-size:9px; letter-spacing:.5px; }
+.lms-countdown span { color:#91a0b8; font-size:8px; }
+.lms-countdown>i { display:block; height:7px; overflow:hidden; border-radius:10px; background:#273449; }
+.lms-countdown>i em { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#35d98a,#ffd166,#ff647d); transition:width 1s linear; }
+@media(max-width:900px) {
+ .luxen-market-scanner.lms-multi { aspect-ratio:auto; max-height:none; min-height:0; }
+ .lms-countdown { min-width:100%; max-width:none; order:3; }
+}

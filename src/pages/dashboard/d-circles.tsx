@@ -261,20 +261,7 @@ const DCircles = () => {
             <div className='luxen-dc__market-footer'><span className='luxen-dc__window'>LAST {ticks.length.toLocaleString()} / {WINDOW_SIZE.toLocaleString()} TICKS</span><span>Selected: <strong>{selectedMarket?.display_name || 'None'}</strong> · API symbol: {symbol || '—'}</span></div>
         </div>
         {error && <div className='luxen-dc__error' role='alert'>{error}</div>}
-        <div className='luxen-dc__stats'>
-            <article><small>SELECTED MARKET</small><strong>{selectedMarket?.display_name || '—'}</strong><span>{latestTick ? latestTick.quote : 'Waiting for first quote'}</span></article>
-            <article><small>EVEN / ODD</small><strong>{ticks.length ? ((evenCount / ticks.length) * 100).toFixed(1) + '% / ' + ((oddCount / ticks.length) * 100).toFixed(1) + '%' : '—'}</strong><span>{evenCount} Even · {oddCount} Odd</span></article>
-            <article><small>OVER / UNDER</small><strong>{ticks.length ? ((overCount / ticks.length) * 100).toFixed(1) + '% / ' + ((underCount / ticks.length) * 100).toFixed(1) + '%' : '—'}</strong><span>Over 4 (5–9) · Under 5 (0–4)</span></article>
-            <article><small>LATEST TICK</small><strong>{latestTick ? latestTick.digit : '—'}</strong><span>{latestTick ? formatTime(latestTick.epoch) : 'No tick received'} · {received.toLocaleString()} received</span></article>
-        </div>
         {evenOddSignal && <div className={'luxen-dc__floating-signal is-' + evenOddSignal.toLowerCase()} role='status' aria-live='polite'><span>{evenOddSignal} SIGNAL</span><small>Leading digits {ranking.top} + {ranking.second}</small></div>}
-        <div className='luxen-dc__signal-row'>
-            <div className={'luxen-dc__signal ' + (evenOddSignal ? 'is-' + evenOddSignal.toLowerCase() : 'is-neutral')}>
-                <span>LEADING DIGIT SIGNAL</span><strong>{evenOddSignal ? evenOddSignal + ' SIGNAL' : 'NO CONFIRMED SIGNAL'}</strong>
-                <small>{ranking.top !== null && ranking.second !== null ? 'Top digits: ' + ranking.top + ' and ' + ranking.second : 'Waiting for unique first and second rankings'}</small>
-            </div>
-            <div className='luxen-dc__signal-note'>Signals are based on the two uniquely ranked highest-frequency digits in the current 1,000-tick sample. They describe past frequency, not a prediction guarantee.</div>
-        </div>
         <div className='luxen-dc__panel'>
             <div className='luxen-dc__panel-heading'><div><h2>D-Circles · Digit distribution</h2><p>Live frequency from this market's most recent 1,000 valid ticks</p></div><span>{ticks.length} / 1,000</span></div>
             <div className='luxen-dc__circles'>
@@ -290,6 +277,12 @@ const DCircles = () => {
                 })}
             </div>
             <div className='luxen-dc__legend'><span><i className='green'/>Most appearing</span><span><i className='blue'/>2nd most</span><span><i className='red'/>Least appearing</span><span><i className='orange'/>2nd least</span><span><i className='gold'/>Latest digit</span></div>
+        </div>
+        <div className='luxen-dc__stats'>
+            <article><small>SELECTED MARKET</small><strong>{selectedMarket?.display_name || '—'}</strong><span>{latestTick ? latestTick.quote : 'Waiting for first quote'}</span></article>
+            <article><small>EVEN / ODD</small><strong>{ticks.length ? ((evenCount / ticks.length) * 100).toFixed(1) + '% / ' + ((oddCount / ticks.length) * 100).toFixed(1) + '%' : '—'}</strong><span>{evenCount} Even · {oddCount} Odd</span></article>
+            <article><small>OVER / UNDER</small><strong>{ticks.length ? ((overCount / ticks.length) * 100).toFixed(1) + '% / ' + ((underCount / ticks.length) * 100).toFixed(1) + '%' : '—'}</strong><span>Over 4 (5–9) · Under 5 (0–4)</span></article>
+            <article><small>LATEST TICK</small><strong>{latestTick ? latestTick.digit : '—'}</strong><span>{latestTick ? formatTime(latestTick.epoch) : 'No tick received'} · {received.toLocaleString()} received</span></article>
         </div>
         <div className='luxen-dc__patterns'>
             <article className='luxen-dc__panel'><h2>Recent Even / Odd pattern</h2><p>Last {evenOddPattern.length} ticks · E = Even · O = Odd</p><div className='luxen-dc__pattern'>{evenOddPattern.map((value, index) => <b key={index} className={value === 'E' ? 'even' : 'odd'}>{value}</b>)}</div></article>

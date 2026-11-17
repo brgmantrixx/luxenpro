@@ -137,3 +137,35 @@
 .luxen-dc__footnote{margin:8px 2px;font-size:9px}
 @media(max-width:850px){.luxen-dc__market-categories{grid-template-columns:1fr}.luxen-dc__market-buttons{display:flex;flex-wrap:wrap}.luxen-dc__market-button{width:auto}}
 @media(max-width:700px){.luxen-dc{padding:10px}.luxen-dc__market-panel-head{flex-direction:row;align-items:center}.luxen-dc__market-categories{grid-template-columns:1fr}.luxen-dc__market-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.luxen-dc__market-button{width:100%}}
+
+/* Wide 16:9 D-Circles workspace and full-colour digit tokens */
+.luxen-dc {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    max-height: calc(100vh - 15rem);
+    min-height: 48rem;
+    overflow: auto;
+    padding: 1.2rem 1.6rem 1.8rem;
+}
+.luxen-dc__circle {
+    --ring: #64748b;
+    border: 2px solid var(--ring);
+    background: var(--ring) !important;
+    color: #fff;
+    box-shadow: 0 5px 18px color-mix(in srgb, var(--ring) 35%, transparent);
+}
+.luxen-dc__circle:before { display: none; }
+.luxen-dc__circle b,.luxen-dc__circle span,.luxen-dc__circle small {
+    color: #fff !important;
+    text-shadow: 0 1px 3px #0008;
+}
+.luxen-dc__circle--most { --ring: #16a765; }
+.luxen-dc__circle--second { --ring: #237bd3; }
+.luxen-dc__circle--least { --ring: #dc3545; }
+.luxen-dc__circle--second-least { --ring: #e68a18; }
+.luxen-dc__circle--normal { --ring: #475569; }
+.luxen-dc__stats { margin-top: 1rem; }
+@media (max-width: 900px) {
+    .luxen-dc { aspect-ratio: auto; max-height: none; min-height: 0; }
+}
