@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api_base } from '@/external/bot-skeleton';
 import './d-circles.scss';
 
-type Market = { symbol: string; display_name: string; market: string; submarket?: string; pip_size?: number };
+type Market = { symbol: string; display_name: string; market: string; submarket?: string; pip_size?: number; precision?: number };
 type Tick = { quote: string; epoch: number; digit: number };
 type Status = 'CONNECTING' | 'LIVE' | 'PAUSED' | 'DISCONNECTED' | 'ERROR';
 const WINDOW_SIZE = 1000;
@@ -21,10 +21,9 @@ const decimalPlaces = (pipSize?: number) => {
     return text.includes('e-') ? Number(text.split('e-')[1]) : (text.split('.')[1] || '').length;
 };
 
-const digitFromQuote = (quote: string | number, pipSize?: number) => {
+const digitFromQuote = (quote: string | number, precision?: number) => {
     const raw = String(quote);
-    const places = decimalPlaces(pipSize);
-    const normalized = places === undefined ? raw : Number(raw).toFixed(places);
+    const normalized = precision === undefined ? raw : Number(raw).toFixed(precision);
     const fraction = normalized.split('.')[1] || '';
     const last = fraction.slice(-1);
     return /^\d$/.test(last) ? Number(last) : null;
@@ -93,7 +92,8 @@ const DCircles = () => {
                     display_name: item.display_name || item.symbol,
                     market: item.market || '',
                     submarket: item.submarket,
-                    pip_size: api_base.pip_sizes?.[item.symbol] ?? item.pip_size,
+                    pip_size: item.pip_size ?? item.pip,
+                    precision: api_base.pip_sizes?.[item.symbol] ?? decimalPlaces(item.pip_size ?? item.pip),
                 }))
                 .filter((item: Market) => item.symbol && marketGroup(item));
             setMarkets(available);
@@ -123,7 +123,7 @@ const DCircles = () => {
         setError('');
 
         const market = markets.find(item => item.symbol === symbol);
-        const precision = market?.pip_size ?? api_base.pip_sizes?.[symbol];
+        const precision = market?.precision ?? api_base.pip_sizes?.[symbol];
 
         const acceptTick = (quote: string | number, epoch: number) => {
             if (!active || pausedRef.current) return;
@@ -219,6 +219,7 @@ const DCircles = () => {
             <article><small>OVER / UNDER</small><strong>{ticks.length ? ((overCount / ticks.length) * 100).toFixed(1) + '% / ' + ((underCount / ticks.length) * 100).toFixed(1) + '%' : '—'}</strong><span>Over 4 (5–9) · Under 5 (0–4)</span></article>
             <article><small>LATEST TICK</small><strong>{latestTick ? latestTick.digit : '—'}</strong><span>{latestTick ? formatTime(latestTick.epoch) : 'No tick received'} · {received.toLocaleString()} received</span></article>
         </div>
+        {evenOddSignal && <div className={'luxen-dc__floating-signal is-' + evenOddSignal.toLowerCase()} role='status' aria-live='polite'><span>{evenOddSignal} SIGNAL</span><small>Leading digits {ranking.top} + {ranking.second}</small></div>}
         <div className='luxen-dc__signal-row'>
             <div className={'luxen-dc__signal ' + (evenOddSignal ? 'is-' + evenOddSignal.toLowerCase() : 'is-neutral')}>
                 <span>LEADING DIGIT SIGNAL</span><strong>{evenOddSignal ? evenOddSignal + ' SIGNAL' : 'NO CONFIRMED SIGNAL'}</strong>
