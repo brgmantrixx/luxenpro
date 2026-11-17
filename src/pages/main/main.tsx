@@ -153,7 +153,11 @@ const AppWrapper = observer(() => {
             try {
                 const response = await fetch(`/bots/free/${encodeURIComponent(file)}`, { cache: 'no-cache' });
                 if (!response.ok) throw new Error(`Template request failed (${response.status})`);
-                const xmlText = await response.text();
+                const encoded = (await response.text()).trim();
+                const binary = atob(encoded);
+                const compressed = Uint8Array.from(binary, character => character.charCodeAt(0));
+                const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+                const xmlText = await new Response(stream).text();
                 const xml = window.Blockly.Xml.textToDom(xmlText);
                 if (cancelled) return;
                 workspace.clear();
