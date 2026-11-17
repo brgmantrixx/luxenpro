@@ -11,9 +11,9 @@ const marketGroup = (market: Market) => {
     const name = String(market.display_name || '').toLowerCase();
     const symbol = String(market.symbol || '').toUpperCase();
     const submarket = String(market.submarket || '').toLowerCase();
-    if (/1s/.test(name) || /^1HZ\\d+V?$/.test(symbol)) return 'Volatility (1s)';
-    if (/jump/.test(name) || /jump/.test(submarket) || /^JD\\d+/.test(symbol)) return 'Jump';
-    if (/volatility/.test(name) || /random/.test(submarket) || /^R_\\d+$/.test(symbol)) return 'Volatility';
+    if (/1s/.test(name) || /^1HZ\d+V?$/.test(symbol)) return 'Volatility (1s)';
+    if (/jump/.test(name) || /jump/.test(submarket) || /^JD\d+/.test(symbol)) return 'Jump';
+    if (/volatility/.test(name) || /random/.test(submarket) || /^R_\d+$/.test(symbol)) return 'Volatility';
     return '';
 };
 
