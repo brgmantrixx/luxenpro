@@ -73,3 +73,24 @@
 .luxen-dc__floating-signal.is-even span{color:#35d98a;text-shadow:0 0 12px #35d98a}
 @keyframes luxen-signal-pop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){.luxen-dc__floating-signal{right:12px;bottom:14px;min-width:150px;padding:10px 13px}}
+
+.luxen-dc__market-panel{margin:20px 0;padding:17px;border:1px solid var(--dc-border);border-radius:16px;background:linear-gradient(145deg,#101b2b,#0c1421);box-shadow:0 10px 24px #0003}
+.luxen-dc__market-panel-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+.luxen-dc__market-kicker{color:#ffd166;font-size:9px;font-weight:900;letter-spacing:1.5px}
+.luxen-dc__market-panel-head h2{margin:5px 0;color:#f3f6fb;font-size:18px;font-weight:850}
+.luxen-dc__market-panel-head p{margin:0;color:#91a0b8;font-size:11px;line-height:1.5}
+.luxen-dc__market-categories{display:grid;gap:12px}
+.luxen-dc__market-category{padding:13px;border:1px solid #26364d;border-radius:12px;background:#0c1523}
+.luxen-dc__market-category-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+.luxen-dc__market-category-title h3{margin:0;color:#e9eff9;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+.luxen-dc__market-category-title span{color:#8495ae;font-size:10px;font-weight:750}
+.luxen-dc__market-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.luxen-dc__market-button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;min-width:112px;min-height:42px;padding:8px 12px;border:1px solid #34455e;border-radius:9px;color:#dce6f5;background:#172438;font-size:11px;font-weight:800;text-align:left;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.luxen-dc__market-button:hover{border-color:#e9b949;background:#1d2e47}
+.luxen-dc__market-button.is-selected{border-color:#f2c14e;color:#fff;background:linear-gradient(135deg,#49391c,#202b3b);box-shadow:0 0 0 1px #f2c14e44,0 0 16px #eab94922}
+.luxen-dc__market-button i{color:#f4cf72;font-size:8px;font-style:normal;letter-spacing:.7px}
+.luxen-dc__market-empty{margin:0;color:#7f8da3;font-size:10px}
+.luxen-dc__market-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:13px;padding-top:12px;border-top:1px solid #26364d;color:#8e9db4;font-size:10px}
+.luxen-dc__market-footer strong{color:#f4d078}
+.luxen-dc__controls button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:700px){.luxen-dc__market-panel{padding:12px}.luxen-dc__market-panel-head{align-items:flex-start;flex-direction:column}.luxen-dc__market-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.luxen-dc__market-button{min-width:0;width:100%}.luxen-dc__market-footer{align-items:flex-start;flex-direction:column}}
