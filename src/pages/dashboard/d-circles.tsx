@@ -104,22 +104,24 @@ const DCircles = () => {
             let response = await api_base.api.send({ active_symbols: 'brief' }) as any;
             if (response?.error) throw new Error(response.error.message || 'Unable to load active markets');
             let rawSymbols = response?.active_symbols || response?.data?.active_symbols || [];
-            // Some API sessions return a reduced brief list; retry full metadata before declaring no markets.
-            if (!Array.isArray(rawSymbols) || rawSymbols.length === 0) {
-                response = await api_base.api.send({ active_symbols: 'full' }) as any;
-                if (response?.error) throw new Error(response.error.message || 'Unable to load full market list');
-                rawSymbols = response?.active_symbols || response?.data?.active_symbols || [];
-            }
-            const available = (Array.isArray(rawSymbols) ? rawSymbols : [])
+            const mapMarkets = (items: any[]): Market[] => items
                 .map((item: any) => ({
                     symbol: String(item.symbol || ''),
                     display_name: item.display_name || item.symbol,
-                    market: item.market || '',
+                    market: item.market || item.market_display_name || '',
                     submarket: item.submarket || item.submarket_display_name || '',
                     pip_size: item.pip_size ?? item.pip,
                     precision: api_base.pip_sizes?.[item.symbol] ?? decimalPlaces(item.pip_size ?? item.pip),
                 }))
                 .filter((item: Market) => item.symbol && marketGroup(item));
+            let available = mapMarkets(Array.isArray(rawSymbols) ? rawSymbols : []);
+            // Retry with full metadata if the brief response omitted the supported synthetic indices.
+            if (!available.length) {
+                response = await api_base.api.send({ active_symbols: 'full' }) as any;
+                if (response?.error) throw new Error(response.error.message || 'Unable to load full market list');
+                rawSymbols = response?.active_symbols || response?.data?.active_symbols || [];
+                available = mapMarkets(Array.isArray(rawSymbols) ? rawSymbols : []);
+            }
             setMarkets(available);
             if (available.length) {
                 setSymbol(current => available.some((item: Market) => item.symbol === current) ? current : available[0].symbol);
