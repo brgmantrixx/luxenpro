@@ -4,11 +4,12 @@ import { useStore } from '../../hooks/useStore';
 import { DBOT_TABS } from '../../constants/bot-contents';
 import './luxen-dashboard.scss';
 import DCircles from './d-circles';
+import LuxenMarketScanner from './luxen-market-scanner';
 
-type Section = 'Dashboard' | 'Premium Bots' | 'Free Bots' | 'D-Circles' | 'Speed Lab' | 'Pro Hedge' | 'Risk Calculator' | 'Charts' | 'Manual Trading';
+type Section = 'Dashboard' | 'Premium Bots' | 'Free Bots' | 'D-Circles' | 'Luxen Market Scanner' | 'Pro Hedge' | 'Risk Calculator' | 'Charts' | 'Manual Trading';
 const nav: { label: Section; icon: string }[] = [
     { label: 'Premium Bots', icon: '♛' }, { label: 'Dashboard', icon: '▦' }, { label: 'Free Bots', icon: '⬢' },
-    { label: 'D-Circles', icon: '●' }, { label: 'Speed Lab', icon: 'ϟ' }, { label: 'Pro Hedge', icon: '⇄' },
+    { label: 'D-Circles', icon: '●' }, { label: 'Luxen Market Scanner', icon: '⌁' }, { label: 'Pro Hedge', icon: '⇄' },
     { label: 'Risk Calculator', icon: '▣' }, { label: 'Charts', icon: '◔' }, { label: 'Manual Trading', icon: '◈' },
 ];
 const bots = [
@@ -56,7 +57,7 @@ const Dashboard = observer(() => {
         {section === 'Dashboard' && <section className='luxen-module-page'><span className='luxen-eyebrow'>ACCOUNT OVERVIEW</span><h1>Dashboard</h1><p className='luxen-module-lead'>Your Deriv trading workspace at a glance.</p><div className='luxen-stat-grid'><div className='luxen-stat-card'><small>CONNECTION</small><strong>Deriv API</strong><span>Existing connection retained</span></div><div className='luxen-stat-card'><small>BOT WORKSPACE</small><strong>Ready</strong><span>Open Bot Builder to create a strategy</span></div><div className='luxen-stat-card'><small>BOT LIBRARY</small><strong>8</strong><span>Free strategy templates</span></div></div><button className='luxen-primary-action' onClick={builder}>Open Bot Builder →</button></section>}
         {section === 'Premium Bots' && <section className='luxen-module-page'><span className='luxen-eyebrow'>MEMBERS AREA</span><h1>Premium Bots</h1><p className='luxen-module-lead'>Premium strategies will appear here when your membership and licensing service is connected.</p><div className='luxen-empty-state'><span>♛</span><h2>Premium strategy library</h2><p>No premium bots have been connected yet.</p></div></section>}
         {section === 'D-Circles' && <DCircles />}
-        {section === 'Speed Lab' && <section className='luxen-module-page'><span className='luxen-eyebrow'>MARKET RESEARCH</span><h1>Speed Lab</h1><p className='luxen-module-lead'>A workspace for rapid digit movement and short-window volatility studies.</p><div className='luxen-empty-state'><span>ϟ</span><h2>Tick-speed monitor</h2><p>Connect a symbol and tick subscription to display live speed metrics.</p></div></section>}
+        {section === 'Luxen Market Scanner' && <LuxenMarketScanner />}
         {section === 'Pro Hedge' && <section className='luxen-module-page'><span className='luxen-eyebrow'>ADVANCED STRATEGIES</span><h1>Pro Hedge</h1><p className='luxen-module-lead'>A dedicated workspace for configuring hedge and recovery strategies.</p><div className='luxen-empty-state'><span>⇄</span><h2>Hedge workspace</h2><p>Strategy execution is not enabled in this module yet.</p></div></section>}
         {section === 'Risk Calculator' && <section className='luxen-module-page'><span className='luxen-eyebrow'>POSITION SIZING</span><h1>Risk Management Calculator</h1><p className='luxen-module-lead'>Estimate account risk and position size before placing a trade.</p><div className='luxen-calculator'><div className='luxen-calc-fields'>
             <label>Account balance (USD)<input type='number' min='0' value={balance} onChange={e=>setBalance(e.target.value)}/></label><label>Risk per trade (%)<input type='number' min='0' max='100' step='0.1' value={risk} onChange={e=>setRisk(e.target.value)}/></label><label>Stop loss (pips)<input type='number' min='0' step='0.1' value={stopLoss} onChange={e=>setStopLoss(e.target.value)}/></label><label>Value per pip per 1.00 lot (USD)<input type='number' min='0' step='0.01' value={pipValue} onChange={e=>setPipValue(e.target.value)}/></label>
