@@ -8,10 +8,12 @@ type Status = 'CONNECTING' | 'LIVE' | 'PAUSED' | 'DISCONNECTED' | 'ERROR';
 const WINDOW_SIZE = 1000;
 
 const marketGroup = (market: Market) => {
-    const name = market.display_name.toLowerCase();
-    if (/\(1s\)|1s/.test(name) || /^1hz/.test(market.symbol.toLowerCase())) return 'Volatility (1s)';
-    if (/jump/.test(name) || /^jd/.test(market.symbol.toLowerCase())) return 'Jump';
-    if (/volatility/.test(name) || /^r_(10|25|50|75|100)$/.test(market.symbol.toLowerCase())) return 'Volatility';
+    const name = String(market.display_name || '').toLowerCase();
+    const symbol = String(market.symbol || '').toUpperCase();
+    const submarket = String(market.submarket || '').toLowerCase();
+    if (/1s/.test(name) || /^1HZ\d+V?$/.test(symbol)) return 'Volatility (1s)';
+    if (/jump/.test(name) || /jump/.test(submarket) || /^JD\d+/.test(symbol)) return 'Jump';
+    if (/volatility/.test(name) || /random/.test(submarket) || /^R_\d+$/.test(symbol)) return 'Volatility';
     return '';
 };
 
@@ -85,21 +87,36 @@ const DCircles = () => {
         setError('');
         try {
             if (!api_base.api) throw new Error('Deriv connection is not ready. Sign in or reconnect first.');
-            const response = await api_base.api.send({ active_symbols: 'brief' }) as any;
+            let response = await api_base.api.send({ active_symbols: 'brief' }) as any;
             if (response?.error) throw new Error(response.error.message || 'Unable to load active markets');
-            const available = (response?.active_symbols || [])
+            let rawSymbols = response?.active_symbols || response?.data?.active_symbols || [];
+            // Some API sessions return a reduced brief list; retry full metadata before declaring no markets.
+            if (!Array.isArray(rawSymbols) || rawSymbols.length === 0) {
+                response = await api_base.api.send({ active_symbols: 'full' }) as any;
+                if (response?.error) throw new Error(response.error.message || 'Unable to load full market list');
+                rawSymbols = response?.active_symbols || response?.data?.active_symbols || [];
+            }
+            const available = (Array.isArray(rawSymbols) ? rawSymbols : [])
                 .map((item: any) => ({
-                    symbol: item.symbol,
+                    symbol: String(item.symbol || ''),
                     display_name: item.display_name || item.symbol,
                     market: item.market || '',
-                    submarket: item.submarket,
+                    submarket: item.submarket || item.submarket_display_name || '',
                     pip_size: item.pip_size ?? item.pip,
                     precision: api_base.pip_sizes?.[item.symbol] ?? decimalPlaces(item.pip_size ?? item.pip),
                 }))
                 .filter((item: Market) => item.symbol && marketGroup(item));
             setMarkets(available);
-            if (available.length) setSymbol(current => available.some((item: Market) => item.symbol === current) ? current : available[0].symbol);
-            else setError('Deriv did not return any available Volatility or Jump instruments for this account.');
+            if (available.length) {
+                setSymbol(current => available.some((item: Market) => item.symbol === current) ? current : available[0].symbol);
+            } else {
+                setStatus('ERROR');
+                const count = Array.isArray(rawSymbols) ? rawSymbols.length : 0;
+                const sample = Array.isArray(rawSymbols) ? rawSymbols.slice(0, 5).map((item: any) => item.display_name || item.symbol).filter(Boolean).join(', ') : 'unexpected API response';
+                setError(count
+                    ? `Deriv returned ${count} instruments, but none matched Volatility / Volatility (1s) / Jump. Returned examples: ${sample || 'none'}.`
+                    : 'Deriv returned an empty active-symbol list. Reconnect your Deriv account and refresh markets; no live digit feed can start until Deriv returns instruments.');
+            }
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Market list request failed');
             setStatus('DISCONNECTED');
