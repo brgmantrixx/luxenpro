@@ -311,7 +311,7 @@ const RunPanel = observer(() => {
         />
     );
 
-    const show_run_panel = [BOT_BUILDER, CHART].includes(active_tab) || active_tour;
+    const show_run_panel = [BOT_BUILDER, CHART].includes(active_tab) || active_tour || run_panel.is_running || run_panel.has_open_contract;
     if ((!show_run_panel && isDesktop) || active_tour === 'bot_builder') return null;
 
     return (
@@ -322,13 +322,14 @@ const RunPanel = observer(() => {
                     className={classNames('run-panel', {
                         'run-panel__container': isDesktop,
                         'run-panel__container--tour-active': isDesktop && active_tour,
+                        'run-panel__container--floating': isDesktop && (run_panel.is_running || run_panel.has_open_contract),
                     })}
                     contentClassName='run-panel__content'
                     header={header}
                     footer={isDesktop && footer}
                     is_open={is_drawer_open}
                     toggleDrawer={toggleDrawer}
-                    width={366}
+                    width={420}
                     zIndex={popover_zindex.RUN_PANEL}
                 >
                     {content}
