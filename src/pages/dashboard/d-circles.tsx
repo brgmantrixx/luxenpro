@@ -59,6 +59,7 @@ const DCircles = () => {
     const [error, setError] = useState('');
     const [paused, setPaused] = useState(false);
     const pausedRef = useRef(false);
+    const lastSeenRef = useRef('');
     const [latestTick, setLatestTick] = useState<Tick | null>(null);
     const [received, setReceived] = useState(0);
     const [marketLoading, setMarketLoading] = useState(true);
@@ -117,6 +118,7 @@ const DCircles = () => {
         setStatus('CONNECTING');
         setPaused(false);
         pausedRef.current = false;
+        lastSeenRef.current = '';
         setTicks([]);
         setLatestTick(null);
         setReceived(0);
@@ -130,6 +132,9 @@ const DCircles = () => {
             const digit = digitFromQuote(quote, precision);
             if (digit === null || !Number.isFinite(epoch)) return;
             const next: Tick = { quote: String(quote), epoch, digit };
+            const tickKey = String(epoch) + ':' + String(quote);
+            if (lastSeenRef.current === tickKey) return;
+            lastSeenRef.current = tickKey;
             setLatestTick(next);
             setReceived(value => value + 1);
             setTicks(current => {
