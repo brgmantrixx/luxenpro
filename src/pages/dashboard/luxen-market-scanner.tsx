@@ -1,0 +1,65 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { api_base } from '@/external/bot-skeleton';
+import './luxen-market-scanner.scss';
+
+type Market = { symbol: string; display_name: string; precision?: number };
+type Tick = { quote: string; epoch: number; digit: number };
+type SignalKey = 'ODD'|'EVEN'|'OVER_2'|'OVER_3'|'UNDER_7'|'UNDER_6';
+type Signal = {key:SignalKey;title:string;side:string;entry:number;percent:number;detail:string};
+type Direction = 'up'|'down'|'flat'|'new';
+const WINDOWS=[1000,500,200,100] as const;
+const marketGroup=(m:any)=>{const n=String(m.display_name||'').toLowerCase(),s=String(m.symbol||'').toLowerCase();if(/1s/.test(n)||s.startsWith('1hz'))return 'Volatility (1s)';if(/jump/.test(n)||s.startsWith('jd'))return 'Jump';if(/volatility/.test(n)||/^r_(10|25|50|75|100)$/.test(s))return 'Volatility';return '';};
+const precisionFrom=(p?:number)=>{if(!p||!Number.isFinite(p)||p<=0)return undefined;const s=String(p);return s.includes('e-')?Number(s.split('e-')[1]):(s.split('.')[1]||'').length;};
+const getDigit=(q:string|number,p?:number)=>{const s=p===undefined?String(q):Number(q).toFixed(p);const d=(s.split('.')[1]||'').slice(-1);return /^\d$/.test(d)?Number(d):null;};
+const pct=(n:number,t:number)=>t?n/t*100:0;
+const analyze=(sample:Tick[])=>{
+ const counts=Array(10).fill(0) as number[];sample.forEach(t=>counts[t.digit]++);
+ const total=sample.length, digitPct=counts.map(c=>pct(c,total));
+ const odd=counts.reduce((n,c,d)=>n+(d%2?c:0),0),even=total-odd;
+ const over2=counts.slice(3).reduce((a,b)=>a+b,0),over3=counts.slice(4).reduce((a,b)=>a+b,0);
+ const under7=counts.slice(0,7).reduce((a,b)=>a+b,0),under6=counts.slice(0,6).reduce((a,b)=>a+b,0);
+ const sorted=counts.map((count,digit)=>({count,digit})).sort((a,b)=>b.count-a.count);
+ const top=sorted[0],second=sorted.find(x=>x.count<top.count);
+ const green=top&&counts.filter(x=>x===top.count).length===1?top.digit:null;
+ const blue=second&&counts.filter(x=>x===second.count).length===1&&green!==null?second.digit:null;
+ const least=(digits:number[])=>digits.reduce((a,b)=>counts[b]<counts[a]?b:a,digits[0]);
+ const oddStrong=[1,3,5,7,9].filter(d=>digitPct[d]>10).length,oddWeak=[0,2,4,6,8].filter(d=>digitPct[d]<10).length;
+ const evenStrong=[0,2,4,6,8].filter(d=>digitPct[d]>10).length,evenWeak=[1,3,5,7,9].filter(d=>digitPct[d]<10).length;
+ const topOver=[4,5,6,7,8,9].includes(green??-1)&&[4,5,6,7,8,9].includes(blue??-1);
+ const topUnder=[0,1,2,3,4,5].includes(green??-1)&&[0,1,2,3,4,5].includes(blue??-1);
+ const percentages={ODD:pct(odd,total),EVEN:pct(even,total),OVER_2:pct(over2,total),OVER_3:pct(over3,total),UNDER_7:pct(under7,total),UNDER_6:pct(under6,total)};
+ const signals:Signal[]=[];
+ if(green!==null&&blue!==null&&green%2===1&&blue%2===1&&percentages.ODD>51.5&&oddStrong>=4&&oddWeak>=4)signals.push({key:'ODD',title:'ODD',side:'EVEN / ODD',entry:least([0,2,4,6,8]),percent:percentages.ODD,detail:'Green + blue are odd; odd strength and even weakness confirmed.'});
+ if(green!==null&&blue!==null&&green%2===0&&blue%2===0&&percentages.EVEN>51.5&&evenStrong>=4&&evenWeak>=4)signals.push({key:'EVEN',title:'EVEN',side:'EVEN / ODD',entry:least([1,3,5,7,9]),percent:percentages.EVEN,detail:'Green + blue are even; even strength and odd weakness confirmed.'});
+ if([0,1,2].every(d=>digitPct[d]<9.9)&&percentages.OVER_2>71.5&&topOver)signals.push({key:'OVER_2',title:'OVER 2',side:'OVER / UNDER',entry:least([1,2]),percent:percentages.OVER_2,detail:'Digits 0–2 below 9.9%; green + blue in 4–9.'});
+ if([0,1,2,3].every(d=>digitPct[d]<9.9)&&percentages.OVER_3>61.5&&topOver)signals.push({key:'OVER_3',title:'OVER 3',side:'OVER / UNDER',entry:least([1,2,3]),percent:percentages.OVER_3,detail:'Digits 0–3 below 9.9%; green + blue in 4–9.'});
+ if([7,8,9].every(d=>digitPct[d]<9.9)&&percentages.UNDER_7>71.5&&topUnder)signals.push({key:'UNDER_7',title:'UNDER 7',side:'OVER / UNDER',entry:least([7,8]),percent:percentages.UNDER_7,detail:'Digits 7–9 below 9.9%; green + blue in 0–5.'});
+ if([6,7,8,9].every(d=>digitPct[d]<9.9)&&percentages.UNDER_6>61.5&&topUnder)signals.push({key:'UNDER_6',title:'UNDER 6',side:'OVER / UNDER',entry:least([6,7,8]),percent:percentages.UNDER_6,detail:'Digits 6–9 below 9.9%; green + blue in 0–5.'});
+ return {counts,digitPct,green,blue,percentages,signals};
+};
+const LuxenMarketScanner=()=>{
+ const [markets,setMarkets]=useState<Market[]>([]),[symbol,setSymbol]=useState(''),[ticks,setTicks]=useState<Tick[]>([]);
+ const [status,setStatus]=useState('CONNECTING'),[error,setError]=useState(''),[paused,setPaused]=useState(false),[loading,setLoading]=useState(true);
+ const pausedRef=useRef(false),lastSeen=useRef(''),previous=useRef<Record<string,number>>({});
+ const [directions,setDirections]=useState<Record<string,Direction>>({});
+ const selected=markets.find(m=>m.symbol===symbol);
+ const current=useMemo(()=>analyze(ticks),[ticks]);
+ const windowStats=useMemo(()=>Object.fromEntries(WINDOWS.map(w=>[w,analyze(ticks.slice(-w)).percentages])),[ticks]);
+ const refreshMarkets=async()=>{setLoading(true);setError('');try{if(!api_base.api)throw new Error('Connect or sign in to Deriv first.');const r:any=await api_base.api.send({active_symbols:'brief'});if(r?.error)throw new Error(r.error.message);const list:Market[]=(r?.active_symbols||[]).filter((m:any)=>marketGroup(m)).map((m:any)=>({symbol:m.symbol,display_name:m.display_name||m.symbol,precision:api_base.pip_sizes?.[m.symbol]??precisionFrom(m.pip_size??m.pip)}));setMarkets(list);if(list.length)setSymbol(old=>list.some(m=>m.symbol===old)?old:list[0].symbol);else setError('No supported Volatility or Jump instruments were returned.');}catch(e){setError(e instanceof Error?e.message:'Could not load markets');setStatus('DISCONNECTED');}finally{setLoading(false);}};
+ useEffect(()=>{void refreshMarkets();},[]);
+ useEffect(()=>{if(!symbol||!api_base.api)return;let active=true,subId:string|number|undefined,stream:any;const precision=markets.find(m=>m.symbol===symbol)?.precision;
+  setTicks([]);setStatus('CONNECTING');setError('');setPaused(false);pausedRef.current=false;lastSeen.current='';previous.current={};setDirections({});
+  const accept=(q:string|number,epoch:number)=>{if(!active||pausedRef.current)return;const digit=getDigit(q,precision);if(digit===null||!Number.isFinite(epoch))return;const key=epoch+':'+q;if(lastSeen.current===key)return;lastSeen.current=key;const tick={quote:String(q),epoch,digit};
+   setTicks(old=>{const next=old.length&&old[old.length-1].epoch===epoch&&old[old.length-1].quote===tick.quote?old:[...old.slice(-999),tick];const updates:Record<string,Direction>={};WINDOWS.forEach(w=>{const sample=next.slice(-w);if(sample.length<w)return;const values=analyze(sample).percentages;(Object.keys(values) as SignalKey[]).forEach(k=>{const id=k+':'+w,now=values[k],before=previous.current[id];updates[id]=before===undefined?'new':now-before>=0.07?'up':now-before<=-0.07?'down':'flat';previous.current[id]=now;});});if(Object.keys(updates).length)setDirections(oldDirs=>({...oldDirs,...updates}));return next;});setStatus('LIVE');};
+  const start=async()=>{try{stream=api_base.api!.onMessage().subscribe(({data}:any)=>{if(data?.msg_type==='tick'&&data?.tick?.symbol===symbol)accept(data.tick.quote,Number(data.tick.epoch));});const r:any=await api_base.api!.send({ticks_history:symbol,count:1000,end:'latest',style:'ticks',subscribe:1});if(!active){if(r?.subscription?.id)api_base.api?.send({forget:r.subscription.id});return;}if(r?.error)throw new Error(r.error.message||'Tick history failed');subId=r?.subscription?.id;const p=r?.history?.prices||[],t=r?.history?.times||[];const initial:Tick[]=p.map((q:string|number,i:number)=>{const d=getDigit(q,precision);return d===null?null:{quote:String(q),epoch:Number(t[i]),digit:d};}).filter((x:Tick|null):x is Tick=>!!x&&Number.isFinite(x.epoch)).slice(-1000);setTicks(initial);const last=initial[initial.length-1];lastSeen.current=last?last.epoch+':'+last.quote:'';setStatus('LIVE');}catch(e){if(active){setStatus('ERROR');setError(e instanceof Error?e.message:'Tick subscription failed');}}};void start();return()=>{active=false;stream?.unsubscribe();if(subId)api_base.api?.send({forget:subId});};},[symbol,markets]);
+ const renderSignal=(s:Signal)=><article className={'lms-signal lms-signal--'+s.key.toLowerCase()} key={s.key}><div className='lms-signal__top'><span>{selected?.display_name||'Selected market'}</span><b>{s.title} SIGNAL</b></div><div className='lms-entry'><small>ENTRY DIGIT</small><strong>{s.entry}</strong><span>Least appearing in the required entry group</span></div><p>{s.detail}</p><div className='lms-signal__percent'>Overall {s.title}: <b>{s.percent.toFixed(2)}%</b></div><div className='lms-trends'><span>1000 / 500 / 200 / 100 TICK TREND</span>{WINDOWS.map(w=>{const d=directions[s.key+':'+w]||'new';return <div className='lms-trend' key={w}><small>{w} ticks</small><b className={'is-'+d} title={d}>{d==='up'?'↑':d==='down'?'↓':d==='flat'?'→':'·'}</b><em>{windowStats[w]?.[s.key].toFixed(2)||'0.00'}%</em></div>;})}</div></article>;
+ const empty=(name:string)=><div className='lms-empty'><span>◎</span><b>NO CONFIRMED {name} SIGNAL</b><p>All specified 1,000-tick filters must pass before a signal appears.</p></div>;
+ const parity=current.signals.filter(s=>s.side==='EVEN / ODD'),contracts=current.signals.filter(s=>s.side==='OVER / UNDER');
+ return <section className='luxen-market-scanner'><header className='lms-header'><div><span className='lms-eyebrow'>LUXENPRO · LIVE DERIV INTELLIGENCE</span><h1>Luxen Market Scanner</h1><p>Two rule-based scanners analysing the selected market's latest 1,000 ticks.</p></div><b className={'lms-status lms-status--'+status.toLowerCase()}>{status}</b></header>
+ <div className='lms-toolbar'><label>DERIV MARKET<select value={symbol} disabled={loading||!markets.length} onChange={e=>setSymbol(e.target.value)}>{(['Volatility (1s)','Volatility','Jump']).map(group=><optgroup label={group} key={group}>{markets.filter(m=>marketGroup(m)===group).map(m=><option key={m.symbol} value={m.symbol}>{m.display_name}</option>)}</optgroup>)}</select></label><div className='lms-controls'><button onClick={()=>void refreshMarkets()}>↻ Refresh markets</button><button onClick={()=>{pausedRef.current=!paused;setPaused(pausedRef.current);setStatus(pausedRef.current?'PAUSED':'LIVE');}}>{paused?'Resume stream':'Pause stream'}</button></div><strong>{ticks.length.toLocaleString()} / 1,000 TICKS</strong></div>{error&&<div className='lms-error' role='alert'>{error}</div>}
+ <div className='lms-overview'>{(['EVEN','ODD','OVER_2','OVER_3','UNDER_7','UNDER_6'] as SignalKey[]).map(k=><div key={k}><small>{k.replace('_',' ')}</small><b>{current.percentages[k].toFixed(2)}%</b></div>)}</div>
+ <div className='lms-panels'><section className='lms-panel'><header><span>01 · PARITY ANALYSIS</span><h2>Luxen Even/Odd Market Scanner</h2><p>1,000 ticks · leading D-Circles + percentage strength / weakness</p></header>{parity.length?parity.map(renderSignal):empty('EVEN / ODD')}<div className='lms-rules'><b>ODD</b> Green + blue are odd; Odd &gt; 51.5%; at least 4 odd digits &gt; 10%; at least 4 even digits &lt; 10%; entry = least appearing even digit.<hr/><b>EVEN</b> Green + blue are even; Even &gt; 51.5%; at least 4 even digits &gt; 10%; at least 4 odd digits &lt; 10%; entry = least appearing odd digit.</div></section>
+ <section className='lms-panel'><header><span>02 · CONTRACT ANALYSIS</span><h2>Luxen Over/Under Market Scanner</h2><p>1,000 ticks · digit thresholds + leading D-Circles</p></header>{contracts.length?contracts.map(renderSignal):empty('OVER / UNDER')}<div className='lms-rules'><b>OVER 2</b> Digits 0–2 &lt; 9.9%; Over 2 &gt; 71.5%; green + blue in 4–9; entry least between 1 &amp; 2.<hr/><b>OVER 3</b> Digits 0–3 &lt; 9.9%; Over 3 &gt; 61.5%; green + blue in 4–9; entry least between 1, 2 &amp; 3.<hr/><b>UNDER 7</b> Digits 7–9 &lt; 9.9%; Under 7 &gt; 71.5%; green + blue in 0–5; entry least between 7 &amp; 8.<hr/><b>UNDER 6</b> Digits 6–9 &lt; 9.9%; Under 6 &gt; 61.5%; green + blue in 0–5; entry least between 6, 7 &amp; 8.</div></section></div>
+ <p className='lms-disclaimer'>↑ / ↓ compares each window's overall percentage with its value on the preceding live tick update. An increase of at least 0.07 percentage points shows ↑; a decrease of at least 0.07 shows ↓; smaller movement shows →. Signals are historical-frequency filters, not guarantees of the next tick.</p></section>;
+};
+export default LuxenMarketScanner;
