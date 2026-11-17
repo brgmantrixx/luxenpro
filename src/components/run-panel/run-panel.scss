@@ -451,3 +451,30 @@
         }
     }
 }
+
+/* Floating execution monitor: remains available over every LUXEN module while a bot runs. */
+.run-panel__container--floating {
+    position: fixed !important;
+    top: 8.2rem !important;
+    right: 1.6rem !important;
+    width: 42rem !important;
+    height: min(72vh, 68rem) !important;
+    max-height: calc(100vh - 10rem) !important;
+    z-index: 12000 !important;
+    border: 1px solid #d2a94e;
+    border-radius: 1.2rem 0 0 1.2rem;
+    box-shadow: 0 1.6rem 5rem #0009, 0 0 0 1px #d2a94e22;
+    background: var(--general-main-1);
+}
+.run-panel__container--floating .run-panel__content { height: 100%; }
+@media (max-width: 700px) {
+    .run-panel__container--floating {
+        top: auto !important;
+        right: 1rem !important;
+        bottom: 8rem !important;
+        width: min(92vw, 42rem) !important;
+        height: min(68vh, 60rem) !important;
+        max-height: 68vh !important;
+        border-radius: 1.2rem;
+    }
+}
