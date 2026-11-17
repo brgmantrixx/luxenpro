@@ -7,7 +7,6 @@ import {
     LabelPairedArrowsRotateMdRegularIcon,
     LabelPairedChartLineMdRegularIcon,
     LabelPairedChartTradingviewMdRegularIcon,
-    LabelPairedFloppyDiskMdRegularIcon,
     LabelPairedFolderOpenMdRegularIcon,
     LabelPairedMagnifyingGlassMinusMdRegularIcon,
     LabelPairedMagnifyingGlassPlusMdRegularIcon,
@@ -58,19 +57,6 @@ const WorkspaceGroup = observer(() => {
                             }}
                         >
                             <LabelPairedFolderOpenMdRegularIcon />
-                        </span>
-                    }
-                />
-                <ToolbarIcon
-                    popover_message={localize('Save')}
-                    icon={
-                        <span
-                            className='toolbar__icon'
-                            id='db-toolbar__save-button'
-                            data-testid='dt_toolbar_save_button'
-                            onClick={toggleSaveModal}
-                        >
-                            <LabelPairedFloppyDiskMdRegularIcon />
                         </span>
                     }
                 />
